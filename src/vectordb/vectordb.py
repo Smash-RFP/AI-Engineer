@@ -65,25 +65,25 @@ def load_and_parse_documents(source_dir):
             print(f"  - [실패] {filename} 처리 중 예측하지 못한 오류 발생: {e}")
 
     print(f"\n총 {len(all_documents)}개의 유효한 문서 조각(청크)을 벡터 DB에 저장합니다.")
-
+    return all_documents
 
 #  벡터 DB에 데이터 저장 함수
-def add_documents_in_batches(vector_db, all_documents, batch_size):
-    if all_documents:
+def add_documents_in_batches(vector_db, documents, batch_size):
+    if documents:
     # 한 번에 처리할 청크 개수 (배치 사이즈)
         batch_size = 100 
         
-        print(f"\n총 {len(all_documents)}개의 청크를 {batch_size}개씩 나누어 처리합니다.")
+        print(f"\n총 {len(documents)}개의 청크를 {batch_size}개씩 나누어 처리합니다.")
 
-        for i in range(0, len(all_documents), batch_size):
+        for i in range(0, len(documents), batch_size):
             # all_documents 리스트에서 batch_size만큼 슬라이싱
-            batch = all_documents[i:i + batch_size]
+            batch = documents[i:i + batch_size]
             
             # 슬라이싱된 'batch'만 DB에 추가
             vector_db.add_documents(batch)
             
             # 진행 상황 출력
-            print(f"  - {i + len(batch)} / {len(all_documents)} 처리 완료")
+            print(f"  - {i + len(batch)} / {len(documents)} 처리 완료")
 
         print("\n✅ 모든 문서의 임베딩 및 벡터 DB 저장이 완료되었습니다.")
 
