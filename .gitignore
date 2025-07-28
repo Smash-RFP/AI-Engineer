@@ -9,3 +9,5 @@ gitflow/
 __pycache__/
 *.pyc
 *.ipynb_checkpoints/
+.env
+*.onnx
