@@ -46,6 +46,7 @@ def load_and_parse_documents(source_dir):
                 for chunk in chunks_data:
                     # 'section' 정보를 메타데이터에 추가
                     metadata = {
+                        "source_id": data.get("source_id", "N/A"),
                         "source": data.get("filename", filename), # JSON 안의 파일명을 우선 사용
                         "chunk_id": chunk.get("chunk_id"),
                         "section": chunk.get("section", "N/A")    # section 정보가 없을 경우 대비
@@ -106,9 +107,9 @@ def test_vector_db_search(vector_db, query):
         print(f"\n🔍 검색된 유사 청크 Top {len(retrieved_docs)}개:")
         print("-" * 60)
         for i, doc in enumerate(retrieved_docs):
-            print(f"[{i+1}] 출처: {doc.metadata.get('source', 'N/A')} (청크 ID: {doc.metadata.get('chunk_id', 'N/A')})")
+            print(f"[{i+1}] 출처: {doc.metadata.get('source', 'N/A')} (ID: {doc.metadata.get('source_id', 'N/A')}, (청크 ID: {doc.metadata.get('chunk_id', 'N/A')})")
             print(f"    - 섹션: {doc.metadata.get('section', 'N/A')}")
-            print(f"    - 내용: {doc.page_content[:200]}...") # 내용이 기므로 200자만 출력
+            print(f"    - 내용: {doc.page_content[:500]}...") # 내용이 기므로 200자만 출력
             print("-" * 60)
     else:
         print("검색된 문서가 없습니다.")
