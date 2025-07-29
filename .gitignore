@@ -21,8 +21,7 @@ __pycache__/
 *.json
 *.bin
 *.pickle
-*.pkl
-chroma_db/73246dd6-03fd-4558-b1b6-2926908b70c0/data_level0.bin
+# chroma_db/73246dd6-03fd-4558-b1b6-2926908b70c0/data_level0.bin
 
-~/src/retrieval/data/**
+/src/retrieval/data/**
 
