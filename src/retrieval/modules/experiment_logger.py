@@ -8,10 +8,12 @@ def compute_avg_latency(results):
     latencies = [r.get("latency_sec", 0.0) for r in results]
     return round(sum(latencies) / len(latencies), 4) if latencies else 0.0
 
+
+
 def log_experiment(
     experiment_name: str,
     mode: str,
-    top_k: int,
+    k: int,
     metrics: dict,
     elapsed_time: float,
     avg_latency: float,
@@ -24,22 +26,22 @@ def log_experiment(
     file_exists = os.path.isfile(LOG_PATH)
     with open(LOG_PATH, mode="a", newline="", encoding="utf-8") as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=[
-            "timestamp", "experiment_name", "mode", "top_k",
-            "P@K", "R@K", "F1@K", "MRR",
+            "experiment_name", "mode", "k",
+            "P@K", "R@K", "F1@K", "MRR@K",
             "elapsed_time", "avg_latency",
             "hybrid_alpha", "dense_model", "notes"
         ])
         if not file_exists:
             writer.writeheader()
+
         writer.writerow({
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "experiment_name": experiment_name,
             "mode": mode,
-            "top_k": top_k,
-            "P@K": metrics.get("P@K", 0),
-            "R@K": metrics.get("R@K", 0),
-            "F1@K": metrics.get("F1@K", 0),
-            "MRR": metrics.get("MRR", 0),
+            "k": k,
+            "P@K": metrics["P@K"][k],
+            "R@K": metrics["R@K"][k],
+            "F1@K": metrics["F1@K"][k],
+            "MRR@K": metrics["MRR@K"][k],
             "elapsed_time": round(elapsed_time, 4),
             "avg_latency": avg_latency,
             "hybrid_alpha": hybrid_alpha if mode == "Hybrid" else "",
