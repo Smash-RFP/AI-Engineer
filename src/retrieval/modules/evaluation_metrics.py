@@ -87,20 +87,15 @@ def evaluate_retrieval(results, ground_truths, k_values):
         'P@K': {},
         'R@K': {},
         'F1@K': {},
+        'MRR@K': {}
     }
-    mrr = mean_reciprocal_rank(results, ground_truths)
 
     for k in k_values:
         scores['P@K'][k] = precision_at_k(results, ground_truths, k)
         scores['R@K'][k] = recall_at_k(results, ground_truths, k)
         scores['F1@K'][k] = f1_at_k(results, ground_truths, k)
+        scores['MRR@K'][k] = mean_reciprocal_rank(results, ground_truths)
 
-    # best K 기준으로 대표값 정리 (예: 가장 높은 F1 기준)
-    best_k = max(scores['F1@K'], key=scores['F1@K'].get)
-    return {
-        'P@K': round(scores['P@K'][best_k], 4),
-        'R@K': round(scores['R@K'][best_k], 4),
-        'F1@K': round(scores['F1@K'][best_k], 4),
-        'MRR': round(mrr, 4),
-        'best_k': best_k
-    }
+    scores["best_k"] = max(scores["F1@K"], key=scores["F1@K"].get)
+    
+    return scores
