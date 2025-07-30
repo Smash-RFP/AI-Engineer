@@ -20,7 +20,6 @@ def save_results(results, path):
         json.dump(results, f, ensure_ascii=False, indent=2)
 
 def run():
-    # 설정
     persist_dir = VECTOR_DB_PATH
     bm25_docs_path = BM25_DOCS_PATH
     queries_path = "../data/queries.json"
@@ -28,7 +27,6 @@ def run():
     result_dir = "../results"
     os.makedirs(result_dir, exist_ok=True)
 
-    # 데이터 로딩
     print("⚡ 벡터스토어 로딩 중...")
     vectordb = load_vectorstore(persist_dir)
     dense_retriever = vectordb.as_retriever(search_kwargs={"k": max(EVAL_PARAMS['k_values'])})
@@ -41,91 +39,68 @@ def run():
     queries = load_queries(queries_path)
     ground_truths = load_ground_truth(gt_path)
 
-    # 1. BM25-only Retrieval 실행
-    print("===========================")
-    print("⚡ BM25-only Retrieval 실행 중...")
-    start_time = time.time()
+    # --- BM25 Retrieval ---
+    print("\n⚡ BM25-only Retrieval 실행 중...")
+    start = time.time()
     bm25_results = retrieve_documents(bm25_retriever, queries)
-    bm25_elapsed = round(time.time() - start_time, 2)
-
+    bm25_elapsed = time.time() - start
     save_results(bm25_results, os.path.join(result_dir, "bm25_results.json"))
     bm25_metrics = evaluate_retrieval(bm25_results, ground_truths, k_values=EVAL_PARAMS['k_values'])
+
     print("BM25-only 성능:", bm25_metrics)
 
-    # 2. Dense-only Retrieval 실행
-    print("===========================")
-    print("⚡ Dense-only Retrieval 실행 중...")
-    start_time = time.time()
-    dense_results = retrieve_documents(dense_retriever, queries)
-    dense_elapsed = round(time.time() - start_time, 2)
-
-    save_results(dense_results, os.path.join(result_dir, "dense_results.json"))
-    dense_metrics = evaluate_retrieval(dense_results, ground_truths, k_values=EVAL_PARAMS['k_values'])
-    print("Dense-only 성능:", dense_metrics)
-
-    # 3. Hybrid Retrieval 실행
-    print("===========================")
-    print("⚡ Hybrid Retrieval 실행 중...")
-    start_time = time.time()
-    hybrid_results = hybrid_retrieve(bm25_retriever, dense_retriever, queries)
-    hybrid_elapsed = round(time.time() - start_time, 2)
-
-    save_results(hybrid_results, os.path.join(result_dir, "hybrid_results.json"))
-    hybrid_metrics = evaluate_retrieval(hybrid_results, ground_truths, k_values=EVAL_PARAMS['k_values'])
-    print("Hybrid 성능:", hybrid_metrics)
-
-    print("===========================")
-    print("\n전체 평가 완료!")
-    print("- BM25 :", bm25_metrics)
-    print("- Dense:", dense_metrics)
-    print("- Hybrid:", hybrid_metrics)
-
-    # k별 결과 기록
     for k in EVAL_PARAMS['k_values']:
-        print(f"[LOG] BM25 (k={k}) 로그 저장 중...")
         log_experiment(
-            experiment_name=f"BM25Test@{k}",
+            experiment_name="BM25Test",
             mode="BM25",
-            top_k=k,
-            metrics={
-                "P@K": bm25_metrics.get(f"P@{k}", 0),
-                "R@K": bm25_metrics.get(f"R@{k}", 0),
-                "F1@K": bm25_metrics.get(f"F1@{k}", 0),
-                "MRR": bm25_metrics.get(f"MRR@{k}", 0)
-            },
+            # top_k=bm25_metrics["best_k"],
+            k=k,
+            metrics=bm25_metrics,
             elapsed_time=bm25_elapsed,
             avg_latency=compute_avg_latency(bm25_results),
             notes=f"BM25-only 실험 (k={k})"
         )
 
-        print(f"[LOG] Dense (k={k}) 로그 저장 중...")
+    # --- Dense Retrieval ---
+    print("\n⚡ Dense-only Retrieval 실행 중...")
+    start = time.time()
+    dense_results = retrieve_documents(dense_retriever, queries)
+    dense_elapsed = time.time() - start
+    save_results(dense_results, os.path.join(result_dir, "dense_results.json"))
+    dense_metrics = evaluate_retrieval(dense_results, ground_truths, k_values=EVAL_PARAMS['k_values'])
+
+    print("Dense-only 성능:", dense_metrics)
+
+    for k in EVAL_PARAMS['k_values']:
         log_experiment(
-            experiment_name=f"DenseTest@{k}",
+            experiment_name="DenseTest",
             mode="Dense",
-            top_k=k,
-            metrics={
-                "P@K": dense_metrics.get(f"P@{k}", 0),
-                "R@K": dense_metrics.get(f"R@{k}", 0),
-                "F1@K": dense_metrics.get(f"F1@{k}", 0),
-                "MRR": dense_metrics.get(f"MRR@{k}", 0)
-            },
+            # top_k=dense_metrics["best_k"],
+            k=k,
+            metrics=dense_metrics,
             elapsed_time=dense_elapsed,
             avg_latency=compute_avg_latency(dense_results),
             dense_model="text-embedding-3-small",
             notes=f"Dense-only 실험 (k={k})"
         )
 
-        print(f"[LOG] Hybrid (k={k}) 로그 저장 중...")
+    # --- Hybrid Retrieval ---
+    print("\n⚡ Hybrid Retrieval 실행 중...")
+    start = time.time()
+    hybrid_results = hybrid_retrieve(bm25_retriever, dense_retriever, queries)
+    hybrid_elapsed = time.time() - start
+    save_results(hybrid_results, os.path.join(result_dir, "hybrid_results.json"))
+    hybrid_metrics = evaluate_retrieval(hybrid_results, ground_truths, k_values=EVAL_PARAMS['k_values'])
+
+    print("Hybrid 성능:", hybrid_metrics)
+
+    for k in EVAL_PARAMS['k_values']:
         log_experiment(
-            experiment_name=f"HybridTest@{k}",
+            experiment_name="HybridTest",
             mode="Hybrid",
-            top_k=k,
-            metrics={
-                "P@K": hybrid_metrics.get(f"P@{k}", 0),
-                "R@K": hybrid_metrics.get(f"R@{k}", 0),
-                "F1@K": hybrid_metrics.get(f"F1@{k}", 0),
-                "MRR": hybrid_metrics.get(f"MRR@{k}", 0)
-            },
+            # top_k=hybrid_metrics["best_k"],
+            k=k,
+            metrics=hybrid_metrics,
             elapsed_time=hybrid_elapsed,
             avg_latency=compute_avg_latency(hybrid_results),
             hybrid_alpha=HYBRID_ALPHA,
