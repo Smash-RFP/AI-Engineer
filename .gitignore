@@ -11,3 +11,17 @@ __pycache__/
 *.ipynb_checkpoints/
 .env
 *.onnx
+*.sqlite3
+/src/retrieval/data/*.pkl
+/src/vectordb/chroma_db/**
+
+*.ipynb
+/src/retrieval/modules/__pycache__/**
+*.csv
+*.json
+*.bin
+*.pickle
+# chroma_db/73246dd6-03fd-4558-b1b6-2926908b70c0/data_level0.bin
+
+/src/retrieval/data/**
+
