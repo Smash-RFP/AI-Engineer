@@ -16,7 +16,7 @@ __pycache__/
 /src/vectordb/chroma_db/**
 
 *.ipynb
-!/src/retrieval/modules/__pycache__/**
+!src/retrieval/modules/__pycache__/**
 *.csv
 *.json
 *.bin
