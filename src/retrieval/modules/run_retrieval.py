@@ -1,6 +1,8 @@
 import os
 import time
 import json
+from sentence_transformers import CrossEncoder
+
 from retrieval import (
     hybrid_retrieve,
     retrieve_documents,
@@ -13,6 +15,8 @@ from retrieval import load_queries, load_ground_truth, compute_avg_latency
 from config import TOP_K, HYBRID_ALPHA, COLLECTION_NAME, EVAL_PARAMS
 from config import BM25_DOCS_PATH, VECTOR_DB_PATH
 from experiment_logger import log_experiment, compute_avg_latency
+
+from retrieval import re_rank
 
 
 def save_results(results, path):
@@ -106,6 +110,73 @@ def run():
             hybrid_alpha=HYBRID_ALPHA,
             notes=f"Hybrid 실험 (k={k})"
         )
+        
+    
+    # --- Cross-Encoder 모델 로딩 ---
+    print("⚡ Cross-Encoder 모델 로딩 중...")
+    cross_encoder_model = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+
+    # --- BM25 + Cross-Encoder ---
+    print("\n⚡ BM25 + CrossEncoder Re-ranking 중...")
+    bm25_reranked = re_rank(bm25_results, model=cross_encoder_model)
+    save_results(bm25_reranked, os.path.join(result_dir, "bm25_reranked_results.json"))
+    bm25_reranked_metrics = evaluate_retrieval(bm25_reranked, ground_truths, k_values=EVAL_PARAMS['k_values'])
+
+    print("BM25 + CrossEncoder 성능:", bm25_reranked_metrics)
+
+    for k in EVAL_PARAMS['k_values']:
+        log_experiment(
+            experiment_name="BM25_Reranked",
+            mode="BM25+CrossEncoder",
+            k=k,
+            metrics=bm25_reranked_metrics,
+            elapsed_time=bm25_elapsed,  # 재정렬 포함 시간 측정 필요 시 갱신
+            avg_latency=compute_avg_latency(bm25_reranked),
+            notes=f"BM25 + CrossEncoder 재정렬 (k={k})"
+        )
+
+    # --- Dense + Cross-Encoder ---
+    print("\n⚡ Dense + CrossEncoder Re-ranking 중...")
+    dense_reranked = re_rank(dense_results, model=cross_encoder_model)
+    save_results(dense_reranked, os.path.join(result_dir, "dense_reranked_results.json"))
+    dense_reranked_metrics = evaluate_retrieval(dense_reranked, ground_truths, k_values=EVAL_PARAMS['k_values'])
+
+    print("Dense + CrossEncoder 성능:", dense_reranked_metrics)
+
+    for k in EVAL_PARAMS['k_values']:
+        log_experiment(
+            experiment_name="Dense_Reranked",
+            mode="Dense+CrossEncoder",
+            k=k,
+            metrics=dense_reranked_metrics,
+            elapsed_time=dense_elapsed,
+            avg_latency=compute_avg_latency(dense_reranked),
+            dense_model="text-embedding-3-small",
+            notes=f"Dense + CrossEncoder 재정렬 (k={k})"
+        )
+
+    # --- Hybrid + Cross-Encoder ---
+    print("\n⚡ Hybrid + CrossEncoder Re-ranking 중...")
+    hybrid_reranked = re_rank(hybrid_results, model=cross_encoder_model)
+    save_results(hybrid_reranked, os.path.join(result_dir, "hybrid_reranked_results.json"))
+    hybrid_reranked_metrics = evaluate_retrieval(hybrid_reranked, ground_truths, k_values=EVAL_PARAMS['k_values'])
+
+    print("Hybrid + CrossEncoder 성능:", hybrid_reranked_metrics)
+
+    for k in EVAL_PARAMS['k_values']:
+        log_experiment(
+            experiment_name="Hybrid_Reranked",
+            mode="Hybrid+CrossEncoder",
+            k=k,
+            metrics=hybrid_reranked_metrics,
+            elapsed_time=hybrid_elapsed,
+            avg_latency=compute_avg_latency(hybrid_reranked),
+            hybrid_alpha=HYBRID_ALPHA,
+            notes=f"Hybrid + CrossEncoder 재정렬 (k={k})"
+        )
+        
+    
+
 
 if __name__ == "__main__":
     run()
