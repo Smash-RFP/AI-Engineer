@@ -32,11 +32,13 @@ def generate_response(query: str, retrieved_rfp_text: str):
         background=False,  # boolean | 모델 응답을 백그라운드에서 실행할지 여부이다. 기본값: false
 
         # --- 출력 제어 ---
-        max_output_tokens=1024,  # integer | 생성될 수 있는 토큰의 최대 상한선이다.
-        stream=False,  # boolean | true로 설정 시, 응답 데이터가 생성되는 대로 스트리밍된다. 기본값: false
-        temperature=1.0,  # number | 샘플링 온도로, 0~2 사이 값이다. 높을수록 무작위성이 커진다. 기본값: 1
-        top_p=1.0,  # number | temperature 대신 사용하는 핵 샘플링(nucleus sampling) 방식이다. 기본값: 1
-        truncation="auto",  # string | 컨텍스트 창 초과 시 입력을 자르는 전략이다. 'auto' 또는 'disabled'. 기본값: 'disabled'
+        max_output_tokens=1024, # integer | 생성될 수 있는 토큰의 최대 상한선이다.
+        stream=False, # boolean | true로 설정 시, 응답 데이터가 생성되는 대로 스트리밍된다. 기본값: false
+        # 여기를 하드코딩된 1.0 대신, 함수 인자로 받은 temperature 값으로 변경
+        # number | 샘플링 온도로, 0~2 사이 값이다. 높을수록 무작위성이 커진다. 기본값: 1
+        temperature=temperature, 
+        top_p=1.0, # number | temperature 대신 사용하는 핵 샘플링(nucleus sampling) 방식이다. 기본값: 1
+        truncation="auto", # string | 컨텍스트 창 초과 시 입력을 자르는 전략이다. 'auto' 또는 'disabled'. 기본값: 'disabled'
     )
 
     # 이전 응답 ID 
