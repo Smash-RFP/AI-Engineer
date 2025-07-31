@@ -2,12 +2,13 @@ from openai import OpenAI
 from config import PROMPT_TEMPLATE, DUMMY_QUERY_LIST, DUMMY_RFP_TEXT
 from pprint import pprint
 
-def generate_response(query: str, retrieved_rfp_text: str):
+def generate_response(query: str, retrieved_rfp_text: str, temperature: float = 1.0):
     """
     OpenAI API를 사용하여 주어진 쿼리와 RFP 문서 내용을 기반으로 응답을 생성한다.
 
     query: 사용자가 입력한 질문
     retrieved_rfp_text: RFP 문서 내용
+    temperature: 모델의 샘플링 온도로, 0~2 사이 값. (기본값: 1.0)
     반환값: 생성된 응답 텍스트와 이전 응답 ID
     """
     client = OpenAI()
@@ -47,6 +48,7 @@ def generate_response(query: str, retrieved_rfp_text: str):
 
     # 응답 텍스트와 이전 응답 ID 반환
     return response_text, previous_response_id
+
 
 if __name__ == "__main__":
     response_text, previous_response_id = generate_response(
