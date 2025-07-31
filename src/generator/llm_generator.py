@@ -2,12 +2,13 @@ from openai import OpenAI
 from config import PROMPT_TEMPLATE, DUMMY_QUERY_LIST, DUMMY_RFP_TEXT
 from pprint import pprint
 
-def generate_response(query: str, retrieved_rfp_text: str):
+def generate_response(query: str, retrieved_rfp_text: str, temperature: float = 1.0):
     """
     OpenAI API를 사용하여 주어진 쿼리와 RFP 문서 내용을 기반으로 응답을 생성한다.
 
     query: 사용자가 입력한 질문
     retrieved_rfp_text: RFP 문서 내용
+    temperature: 모델의 샘플링 온도로, 0~2 사이 값. (기본값: 1.0)
     반환값: 생성된 응답 텍스트와 이전 응답 ID
     """
     client = OpenAI()
@@ -32,11 +33,13 @@ def generate_response(query: str, retrieved_rfp_text: str):
         background=False,  # boolean | 모델 응답을 백그라운드에서 실행할지 여부이다. 기본값: false
 
         # --- 출력 제어 ---
-        max_output_tokens=1024,  # integer | 생성될 수 있는 토큰의 최대 상한선이다.
-        stream=False,  # boolean | true로 설정 시, 응답 데이터가 생성되는 대로 스트리밍된다. 기본값: false
-        temperature=1.0,  # number | 샘플링 온도로, 0~2 사이 값이다. 높을수록 무작위성이 커진다. 기본값: 1
-        top_p=1.0,  # number | temperature 대신 사용하는 핵 샘플링(nucleus sampling) 방식이다. 기본값: 1
-        truncation="auto",  # string | 컨텍스트 창 초과 시 입력을 자르는 전략이다. 'auto' 또는 'disabled'. 기본값: 'disabled'
+        max_output_tokens=1024, # integer | 생성될 수 있는 토큰의 최대 상한선이다.
+        stream=False, # boolean | true로 설정 시, 응답 데이터가 생성되는 대로 스트리밍된다. 기본값: false
+        # 여기를 하드코딩된 1.0 대신, 함수 인자로 받은 temperature 값으로 변경
+        # number | 샘플링 온도로, 0~2 사이 값이다. 높을수록 무작위성이 커진다. 기본값: 1
+        temperature=temperature, 
+        top_p=1.0, # number | temperature 대신 사용하는 핵 샘플링(nucleus sampling) 방식이다. 기본값: 1
+        truncation="auto", # string | 컨텍스트 창 초과 시 입력을 자르는 전략이다. 'auto' 또는 'disabled'. 기본값: 'disabled'
     )
 
     # 이전 응답 ID 
@@ -45,6 +48,7 @@ def generate_response(query: str, retrieved_rfp_text: str):
 
     # 응답 텍스트와 이전 응답 ID 반환
     return response_text, previous_response_id
+
 
 if __name__ == "__main__":
     response_text, previous_response_id = generate_response(
