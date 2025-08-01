@@ -16,42 +16,28 @@ import torch
 
 from config import TOP_K, HYBRID_ALPHA, COLLECTION_NAME
 from config import VECTOR_DB_PATH
-from evaluation_metrics import precision_at_k, recall_at_k, f1_at_k, mean_reciprocal_rank
 
-
-# 벡터스토어 로딩
 def load_vectorstore(persist_dir=VECTOR_DB_PATH) -> Chroma:
     embedding = OpenAIEmbeddings(model="text-embedding-3-small")
-    vectordb = Chroma(
-        persist_directory=persist_dir, 
-        embedding_function=embedding, 
+    return Chroma(
+        persist_directory=persist_dir,
+        embedding_function=embedding,
         collection_name=COLLECTION_NAME
-        )
-    return vectordb
+    )
 
-# query 로딩
-def load_queries(path: str):
+def load_bm25_documents(path: str) -> List[Document]:
+    with open(path, "rb") as f:
+        return pickle.load(f)
+
+def load_json(path: str):
     with open(path, encoding="utf-8") as f:
         return json.load(f)
-    
-# 정답 로딩
-def load_ground_truth(path: str):
-    with open(path, encoding="utf-8") as f:
-        return json.load(f)
-    
 
-# BM25 Retriever 초기화 코드
 def init_bm25_retriever(docs: List[Document], k: int = TOP_K) -> BM25Retriever:
     retriever = BM25Retriever.from_documents(docs)
     retriever.k = k
     return retriever
 
-def load_bm25_documents(path: str) -> List[Document]:
-    with open(path, "rb") as f:
-        docs = pickle.load(f)
-    return docs
-
-# score 딕셔너리 Min-Max 정규화
 def min_max_normalize(score_dict: Dict[str, float]) -> Dict[str, float]:
     if not score_dict:
         return {}
@@ -71,142 +57,124 @@ def z_score_normalize(score_dict: Dict[str, float]) -> Dict[str, float]:
         return {k: 0.0 for k in score_dict}
     return {k: (v - mean) / std for k, v in score_dict.items()}
 
+def extract_doc_info(doc: Document) -> Dict:
+    source_id = doc.metadata.get("source_id", "")
+    chunk_id = doc.metadata.get("chunk_id", "unknown")
+    return {
+        "retrieved_source_id": source_id,
+        "retrieved_chunk_id": chunk_id,
+        "retrieved_content": doc.page_content[:500]
+    }
 
 def hybrid_retrieve(bm25_retriever, dense_retriever, queries: List[str], alpha: float = HYBRID_ALPHA) -> List[Dict]:
     results = []
-
     for query in queries:
         start = time.perf_counter()
+        bm25_docs = bm25_retriever.invoke(query)
+        dense_docs = dense_retriever.invoke(query)
 
-        bm25_docs = bm25_retriever.get_relevant_documents(query)
-        dense_docs = dense_retriever.get_relevant_documents(query)
+        doc_scores = {}
+        all_docs = {}
 
-        bm25_scores = {}
-        dense_scores = {}
-        doc_contents = {}
-        doc_filenames = {}
-
-        # BM25 점수 부여 (역순위 방식 대신 직접 score로 가정. 없으면 idx 사용)
         for idx, doc in enumerate(bm25_docs):
             doc_id = doc.metadata.get("source_id", "")
-            score = 1 / (idx + 1)  # 역순위
-            bm25_scores[doc_id] = score
-            doc_filenames[doc_id] = doc.metadata.get("source", "")
-            doc_contents[doc_id] = doc.page_content[:500]
+            doc_scores.setdefault(doc_id, {})["bm25"] = 1 / (idx + 1)
+            all_docs[doc_id] = doc
 
-        # Dense 점수 부여
         for idx, doc in enumerate(dense_docs):
             doc_id = doc.metadata.get("source_id", "")
-            score = 1 / (idx + 1)
-            dense_scores[doc_id] = score
-            doc_filenames[doc_id] = doc.metadata.get("source", "")
-            doc_contents[doc_id] = doc.page_content[:500]
+            doc_scores.setdefault(doc_id, {})["dense"] = 1 / (idx + 1)
+            all_docs[doc_id] = doc
 
-        # 정규화
-        bm25_norm = z_score_normalize(bm25_scores)
-        dense_norm = z_score_normalize(dense_scores)
+        bm25_norm = z_score_normalize({k: v.get("bm25", 0) for k, v in doc_scores.items()})
+        dense_norm = z_score_normalize({k: v.get("dense", 0) for k, v in doc_scores.items()})
 
-        # 선형 결합
-        combined_scores = {}
-        all_doc_ids = set(bm25_norm.keys()) | set(dense_norm.keys())
-        for doc_id in all_doc_ids:
-            bm25_s = bm25_norm.get(doc_id, 0.0)
-            dense_s = dense_norm.get(doc_id, 0.0)
-            combined_scores[doc_id] = alpha * dense_s + (1 - alpha) * bm25_s
+        combined = {
+            doc_id: alpha * dense_norm.get(doc_id, 0) + (1 - alpha) * bm25_norm.get(doc_id, 0)
+            for doc_id in doc_scores
+        }
 
-        # 정렬 및 결과 구성
-        sorted_docs = sorted(combined_scores.items(), key=lambda x: x[1], reverse=True)
-        retrieved_ids = [doc_id for doc_id, _ in sorted_docs[:TOP_K]]
-        retrieved_filenames = [doc_filenames.get(doc_id, "") for doc_id in retrieved_ids]
-
-        retrieved_contents = [doc_contents[doc_id] for doc_id in retrieved_ids]
-
+        sorted_docs = sorted(combined.items(), key=lambda x: x[1], reverse=True)
         end = time.perf_counter()
+
+        entries = [extract_doc_info(all_docs[doc_id]) for doc_id, _ in sorted_docs[:TOP_K]]
 
         results.append({
             "query": query,
-            "retrieved_ids": retrieved_ids,
-            "retrieved_filenames": retrieved_filenames,
-            "retrieved_contents": retrieved_contents,
+            "results": entries,
             "latency_sec": round(end - start, 4)
         })
-
     return results
 
-
-# Rerank : Cross-Encoder
 def re_rank(results: List[Dict], model: CrossEncoder, top_k: int = TOP_K) -> List[Dict]:
     reranked_results = []
-    
-    for result in results:
-        query = result["query"]
-        passages = result["retrieved_contents"]
-        ids = result["retrieved_ids"]
-        filenames = result.get("retrieved_filenames", [""] * len(ids))
-        id_to_filename = dict(zip(ids, filenames))
-        pairs = [(query, passage) for passage in passages]
 
-        # Cross-Encoder 점수 계산
-        scores = model.predict(pairs)
+    for r in results:
+        query = r["query"]
+        retrieved_ids = r.get("retrieved_ids", [])
+        contents = r.get("retrieved_contents", [])
+        start = time.perf_counter()
 
-        # 점수 기준으로 재정렬
-        scored = list(zip(ids, passages, scores))
-        sorted_scored = sorted(scored, key=lambda x: x[2], reverse=True)
-        reranked_ids = [x[0] for x in sorted_scored[:top_k]]
-        reranked_filenames = [id_to_filename.get(x[0], "") for x in sorted_scored[:top_k]]
-        reranked_contents = [x[1] for x in sorted_scored[:top_k]]
+        if not contents or not retrieved_ids:
+            reranked_results.append({
+                "query": query,
+                "results": [],
+                "latency_sec": r.get("latency_sec", 0.0)
+            })
+            continue
+
+        # 쿼리-패시지 쌍 스코어링
+        scores = model.predict([(query, passage) for passage in contents])
+        ranked = sorted(zip(retrieved_ids, contents, scores), key=lambda x: x[2], reverse=True)
+
+        entries = []
+        for doc_id, content, _ in ranked[:top_k]:
+            entries.append({
+                "retrieved_source_id": doc_id.get("source_id", ""),
+                "retrieved_chunk_id": doc_id.get("chunk_id", "unknown"),
+                "retrieved_content": content
+            })
+
+        end = time.perf_counter()
 
         reranked_results.append({
             "query": query,
-            "retrieved_ids": reranked_ids,
-            "retrieved_filenames": reranked_filenames,
-            "retrieved_contents": reranked_contents,
-            "latency_sec": result.get("latency_sec", 0.0)
+            "results": entries,
+            "latency_sec": round(end - start, 4)
         })
-    
     return reranked_results
 
 
-
-
-# 단일 Retriever (BM25 or Dense) 실행
-def retrieve_documents(retriever, queries: List[str], use_rerank=False) -> List[Dict]:
+def retrieve_documents(retriever, queries: List[str], use_rerank=False, model: CrossEncoder = None) -> List[Dict]:
     results = []
     for query in queries:
         start = time.perf_counter()
-
-        docs = retriever.get_relevant_documents(query)
-        retrieved_ids = [doc.metadata.get("source_id", "") for doc in docs]
-        retrieved_filenames = [doc.metadata.get("source", "") for doc in docs]
-        retrieved_contents = [doc.page_content[:500] for doc in docs]
-        
-        if use_rerank:
-            reranked_indices = re_rank(query, retrieved_contents, top_k=TOP_K)
-            retrieved_ids = [retrieved_ids[i] for i in reranked_indices]
-            retrieved_contents = [retrieved_contents[i] for i in reranked_indices]
-        else:
-            retrieved_ids = retrieved_ids[:TOP_K]
-            retrieved_filenames = retrieved_filenames[:TOP_K]
-            retrieved_contents = retrieved_contents[:TOP_K]
-
+        docs = retriever.invoke(query)
         end = time.perf_counter()
 
-        results.append({
-            "query": query,
-            "retrieved_ids": retrieved_ids,
-            "retrieved_filenames": retrieved_filenames,
-            "retrieved_contents": retrieved_contents,
-            "latency_sec": round(end - start, 4)
-        })
+        if use_rerank and model:
+            ids = [doc.metadata.get("source_id", "") for doc in docs]
+            contents = [doc.page_content[:500] for doc in docs]
+            reranked = re_rank([{
+                "query": query,
+                "retrieved_ids": ids,
+                "retrieved_contents": contents,
+                "latency_sec": round(end - start, 4)
+            }], model=model)
+            results.extend(reranked)
+        else:
+            entries = [extract_doc_info(doc) for doc in docs[:TOP_K]]
+            results.append({
+                "query": query,
+                "results": entries,
+                "latency_sec": round(end - start, 4)
+            })
     return results
 
-
-# 결과 출력
 def save_results(results: List[Dict], path: str):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=2)
-        
-        
+
 def compute_avg_latency(results: List[Dict]) -> float:
     latencies = [r["latency_sec"] for r in results if "latency_sec" in r]
     return round(sum(latencies) / len(latencies), 4) if latencies else 0.0
