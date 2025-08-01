@@ -1,101 +1,77 @@
 import numpy as np
 import time
-from typing import List, Dict
-
+from typing import List, Dict, Union
+from collections import defaultdict
 from config import EVAL_PARAMS
 from config import TOP_K
 
+# 공통 ID 생성 함수 (source_id + chunk_id)
+def make_chunk_identifier(source_id: str, chunk_id: str) -> str:
+    # chunk_id가 이미 'chunk-'로 시작한다면 중복 방지
+    if chunk_id.startswith("chunk-"):
+        return f"{source_id}_chunk_{chunk_id}"
+    return f"{source_id}_chunk_chunk-{chunk_id}"
 
-def precision_at_k(results, ground_truths, k):
-    precision_scores = []
-    for i in range(len(results)):
-        retrieved = set(results[i]["retrieved_ids"][:k])
-        relevant = set(ground_truths[i])
-        if not retrieved:
-            precision_scores.append(0.0)
+
+# Precision@K (Document 기준)
+def doc_level_precision_at_k(results: List[Dict], ground_truths: List[Dict], k: int) -> float:
+    precisions = []
+    for result, gt in zip(results, ground_truths):
+        retrieved_docs = [r["retrieved_source_id"] for r in result["results"][:k]]
+        gt_docs = set(g["source_id"] for g in gt["ground_truths"])
+        if not retrieved_docs:
+            precisions.append(0.0)
         else:
-            precision_scores.append(len(retrieved & relevant) / len(retrieved))
-    return round(sum(precision_scores) / len(precision_scores), 4)
+            precisions.append(len(set(retrieved_docs) & gt_docs) / len(retrieved_docs))
+    return round(np.mean(precisions), 4)
 
 
-def recall_at_k(results, ground_truths, k):
-    recall_scores = []
-    for i in range(len(results)):
-        retrieved = set(results[i]["retrieved_ids"][:k])
-        relevant = set(ground_truths[i])
-        if not relevant:
-            recall_scores.append(0.0)
+# Recall@K (Document 기준)
+def doc_level_recall_at_k(results: List[Dict], ground_truths: List[Dict], k: int) -> float:
+    recalls = []
+    for result, gt in zip(results, ground_truths):
+        retrieved_docs = [r["retrieved_source_id"] for r in result["results"][:k]]
+        gt_docs = set(g["source_id"] for g in gt["ground_truths"])
+        if not gt_docs:
+            recalls.append(0.0)
         else:
-            recall_scores.append(len(retrieved & relevant) / len(relevant))
-    return round(sum(recall_scores) / len(recall_scores), 4)
+            recalls.append(len(set(retrieved_docs) & gt_docs) / len(gt_docs))
+    return round(np.mean(recalls), 4)
 
 
-def mean_reciprocal_rank(results, ground_truths):
-    rr_total = 0.0
-    for i in range(len(results)):
-        retrieved = results[i]["retrieved_ids"]
-        relevant_set = set(ground_truths[i])
-        rr = 0.0
-        for rank, doc_id in enumerate(retrieved, start=1):
-            if doc_id in relevant_set:
-                rr = 1.0 / rank
-                break
-        rr_total += rr
-    return round(rr_total / len(results), 4)
-
-
-def f1_at_k(results, ground_truths, k):
-    f1_scores = []
-    for i in range(len(results)):
-        retrieved = set(results[i]["retrieved_ids"][:k])
-        relevant = set(ground_truths[i])
-        if not retrieved or not relevant:
-            f1_scores.append(0.0)
+# Precision@K (Chunk 기준)
+def chunk_level_precision_at_k(results: List[Dict], ground_truths: List[Dict], k: int) -> float:
+    precisions = []
+    for result, gt in zip(results, ground_truths):
+        retrieved_chunks = [make_chunk_identifier(r["retrieved_source_id"], r["retrieved_chunk_id"]) for r in result["results"][:k]]
+        gt_chunks = set(make_chunk_identifier(g["source_id"], g["chunk_id"]) for g in gt["ground_truths"])
+        if not retrieved_chunks:
+            precisions.append(0.0)
         else:
-            precision = len(retrieved & relevant) / len(retrieved)
-            recall = len(retrieved & relevant) / len(relevant)
-            if precision + recall == 0:
-                f1 = 0.0
-            else:
-                f1 = 2 * (precision * recall) / (precision + recall)
-            f1_scores.append(f1)
-    return round(sum(f1_scores) / len(f1_scores), 4)
+            precisions.append(len(set(retrieved_chunks) & gt_chunks) / len(retrieved_chunks))
+    return round(np.mean(precisions), 4)
 
 
-# 지연 시간 측정
-# Query Latency
-def query_latency(func, *args, **kwargs):
-    start = time.time()
-    _ = func(*args, **kwargs)
-    end = time.time()
-    return end - start
+# Recall@K (Chunk 기준)
+def chunk_level_recall_at_k(results: List[Dict], ground_truths: List[Dict], k: int) -> float:
+    recalls = []
+    for result, gt in zip(results, ground_truths):
+        retrieved_chunks = [make_chunk_identifier(r["retrieved_source_id"], r["retrieved_chunk_id"]) for r in result["results"][:k]]
+        gt_chunks = set(make_chunk_identifier(g["source_id"], g["chunk_id"]) for g in gt["ground_truths"])
+        if not gt_chunks:
+            recalls.append(0.0)
+        else:
+            recalls.append(len(set(retrieved_chunks) & gt_chunks) / len(gt_chunks))
+    return round(np.mean(recalls), 4)
 
 
-
-# Retrieval + 평가 통합 실행 코드
-def normalize_id(text: str):
-    import re
-    text = text.replace(".json", "")
-    text = re.sub(r"[()]", "", text)
-    text = re.sub(r"[^\w]", "_", text)
-    text = re.sub(r"_+", "_", text)
-    return text.strip("_")
-
-
-def evaluate_retrieval(results, ground_truths, k_values):
-    scores = {
-        'P@K': {},
-        'R@K': {},
-        'F1@K': {},
-        'MRR@K': {}
-    }
-
+# 전체 평가
+def evaluate_2stage_retrieval(results: List[Dict], ground_truths: List[Dict], k_values: List[int]) -> Dict[str, Dict[int, float]]:
+    scores = defaultdict(dict)
     for k in k_values:
-        scores['P@K'][k] = precision_at_k(results, ground_truths, k)
-        scores['R@K'][k] = recall_at_k(results, ground_truths, k)
-        scores['F1@K'][k] = f1_at_k(results, ground_truths, k)
-        scores['MRR@K'][k] = mean_reciprocal_rank(results, ground_truths)
-
-    scores["best_k"] = max(scores["F1@K"], key=scores["F1@K"].get)
-    
+        scores["Doc_P@K"][k] = doc_level_precision_at_k(results, ground_truths, k)
+        scores["Doc_R@K"][k] = doc_level_recall_at_k(results, ground_truths, k)
+        scores["Chunk_P@K"][k] = chunk_level_precision_at_k(results, ground_truths, k)
+        scores["Chunk_R@K"][k] = chunk_level_recall_at_k(results, ground_truths, k)
     return scores
+

@@ -2,15 +2,14 @@ import csv
 import os
 from datetime import datetime
 
-LOG_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../results/experiment_log.csv"))
+LOG_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "/home/gcp-JeOn/Smash-RFP/src/retrieval/results/experiment_log.csv"))
 
 def compute_avg_latency(results):
     latencies = [r.get("latency_sec", 0.0) for r in results]
     return round(sum(latencies) / len(latencies), 4) if latencies else 0.0
 
 
-
-def log_experiment(
+def log_2stage_experiment(
     experiment_name: str,
     mode: str,
     k: int,
@@ -22,12 +21,12 @@ def log_experiment(
     notes: str = ""
 ):
     os.makedirs(os.path.dirname(LOG_PATH), exist_ok=True)
-
     file_exists = os.path.isfile(LOG_PATH)
+
     with open(LOG_PATH, mode="a", newline="", encoding="utf-8") as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=[
             "experiment_name", "mode", "k",
-            "P@K", "R@K", "F1@K", "MRR@K",
+            "Doc_P@K", "Doc_R@K", "Chunk_P@K", "Chunk_R@K",
             "elapsed_time", "avg_latency",
             "hybrid_alpha", "dense_model", "notes"
         ])
@@ -38,10 +37,10 @@ def log_experiment(
             "experiment_name": experiment_name,
             "mode": mode,
             "k": k,
-            "P@K": metrics["P@K"][k],
-            "R@K": metrics["R@K"][k],
-            "F1@K": metrics["F1@K"][k],
-            "MRR@K": metrics["MRR@K"][k],
+            "Doc_P@K": metrics["Doc_P@K"][k],
+            "Doc_R@K": metrics["Doc_R@K"][k],
+            "Chunk_P@K": metrics["Chunk_P@K"][k],
+            "Chunk_R@K": metrics["Chunk_R@K"][k],
             "elapsed_time": round(elapsed_time, 4),
             "avg_latency": avg_latency,
             "hybrid_alpha": hybrid_alpha if mode == "Hybrid" else "",
