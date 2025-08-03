@@ -4,11 +4,12 @@ import pickle
 import re
 from langchain_core.documents import Document
 
-folder_dir = "/home/gcp-JeOn/Smash-RFP/data/dummy"
+folder_dir = "/home/gcp-JeOn/Smash-RFP/data/dummy_1"
 output_path = "src/retrieval/data/bm25_docs.pkl"
 os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
 bm25_docs = []
+chunk_id_map = {}
 
 # 정규화 함수 정의
 def normalize_id(text: str) -> str:
@@ -31,6 +32,13 @@ for filename in os.listdir(folder_dir):
                 metadata = record.get("metadata", {})
                 source_id = metadata.get("source_id", f"{filename}_line{line_num}")
                 chunk_id = metadata.get("chunk_id", f"chunk-{line_num:04d}")
+                
+                # chunk_id 매핑 저장
+                identifier = f"{source_id}_chunk_{chunk_id}"
+                chunk_id_map[identifier] = {
+                    "source_id": source_id,
+                    "chunk_id": chunk_id
+                }
 
                 bm25_docs.append(Document(
                     page_content=text,
@@ -44,6 +52,9 @@ for filename in os.listdir(folder_dir):
                 continue
 
 print(f"총 {len(bm25_docs)}개의 Document가 생성됨. 저장 중...")
+
+with open("src/retrieval/data/bm25_chunk_id_map.json", "w", encoding="utf-8") as f:
+    json.dump(chunk_id_map, f, ensure_ascii=False, indent=2)
 
 with open(output_path, "wb") as f:
     pickle.dump(bm25_docs, f)
