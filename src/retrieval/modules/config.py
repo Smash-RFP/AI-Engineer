@@ -20,5 +20,5 @@ HYBRID_ALPHA = 0.5    # 0.0 = pure BM25, 1.0 = pure Dense
 COLLECTION_NAME = "rfp_documents"
 
 # 경로
-VECTOR_DB_PATH = "/home/gcp-JeOn/Smash-RFP/src/vectordb/chroma_db"
-BM25_DOCS_PATH = "../data/bm25_docs.pkl"
+VECTOR_DB_PATH = "src/vectordb/chroma_db"
+BM25_DOCS_PATH = "src/retrieval/data/bm25_docs.pkl"
