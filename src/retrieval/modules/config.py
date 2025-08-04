@@ -2,7 +2,7 @@
 
 # 평가지표 파라미터
 EVAL_PARAMS = {
-    'k_values': [1, 3, 5, 10],  # 여러 k 값으로 평가 가능
+    'k_values': [1, 3],  # 여러 k 값으로 평가 가능
     'default_k': 10,            # 기본 k 값
     'latency_runs': 10,
 }
@@ -20,5 +20,5 @@ HYBRID_ALPHA = 0.5    # 0.0 = pure BM25, 1.0 = pure Dense
 COLLECTION_NAME = "rfp_documents"
 
 # 경로
-VECTOR_DB_PATH = "src/vectordb/chroma_db"
-BM25_DOCS_PATH = "src/retrieval/data/bm25_docs.pkl"
+VECTOR_DB_PATH = "data/chroma_db"
+BM25_DOCS_PATH = "data/bm25_docs.pkl"
