@@ -67,6 +67,12 @@ if __name__ == "__main__":
         output_map_path="data/bm25_chunk_id_map.json"
     )
     
+    # retrieval
     QUERY = "해외 지식 재산 센터 사업 관리 시스템 기능 개발 입찰 참가 자격"
-    run_retrieve(QUERY)
+    contexts = run_retrieve(QUERY)
+
+    # response_text, previous_response_id = generate_response(query=QUERY, retrieved_rfp_text=contexts)
+    
+    # 대화 이어서 하려면 previous_response_id 파라미터로 넣어줌.
+    # response_text, previous_response_id = generate_response(query=QUERY, retrieved_rfp_text=contexts, previous_response_id=previous_response_id)
     
