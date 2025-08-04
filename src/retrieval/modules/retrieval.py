@@ -15,8 +15,8 @@ from sentence_transformers import CrossEncoder
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 
-from config import TOP_K, HYBRID_ALPHA, COLLECTION_NAME
-from config import VECTOR_DB_PATH
+from .config import TOP_K, COLLECTION_NAME
+from .config import VECTOR_DB_PATH
 
 def load_vectorstore(persist_dir=VECTOR_DB_PATH) -> Chroma:
     embedding = OpenAIEmbeddings(model="text-embedding-3-small")
@@ -83,12 +83,6 @@ def z_score_normalize(score_dict: Dict[str, float]) -> Dict[str, float]:
         return {k: 0.0 for k in score_dict}
     return {k: (v - mean) / std for k, v in score_dict.items()}
 
-# def extract_doc_info(doc):
-#     return {
-#         "retrieved_source_id": doc.metadata.get("source_id", ""),
-#         "retrieved_chunk_id": doc.metadata.get("chunk_id", "unknown"),
-#         "retrieved_content": doc.page_content[:300]
-#     }
 
 def extract_doc_info(doc, chunk_id_map=None):
     real_chunk_id = chunk_id_map.get(doc.id, doc.metadata.get("chunk_id", "unknown")) if chunk_id_map else doc.metadata.get("chunk_id", "unknown")
