@@ -159,3 +159,12 @@ if __name__ == "__main__":
     output_items = eval_llm(model = 'gpt-4.1-nano', 
             file_path = "/home/eojin-kim/AI-Engineer/src/generator/experiment/test_dataset/prompt.jsonl",
             retrieved_rfp_text = DUMMY_RFP_TEXT)
+    """
+    file은 아래와 같은 구조로 들어가면 된다.
+
+    prompt.jsonl
+    {"item":{"user_query": "사용자 질문1","label": "문서1"}}
+    {"item":{"user_query": "사용자 질문2","label": "문서2"}}
+    {"item":{"user_query": "사용자 질문3","label": "문서3"}}
+    {"item":{"user_query": "사용자 질문4","label": "문서4"}}
+    """
