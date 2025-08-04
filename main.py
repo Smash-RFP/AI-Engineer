@@ -9,8 +9,6 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_chroma import Chroma
 from langchain.docstore.document import Document
 
-from src.generator.experiment.eval_performance import eval_llm
-from src.generator.llm_generator import generate_response
 from src.loader.preprocessing import extract_text_split_virtual_pages, sanitize_filename, save_chunks_as_jsonl
 from src.vectordb.vectordb import check_api_keys, load_and_parse_documents, add_documents_in_batches, save_chunk_id_mapping, run
 
@@ -69,23 +67,6 @@ if __name__ == "__main__":
         output_map_path="data/bm25_chunk_id_map.json"
     )
     
-<<<<<<< HEAD
     QUERY = "해외 지식 재산 센터 사업 관리 시스템 기능 개발 입찰 참가 자격"
     run_retrieve(QUERY)
-=======
->>>>>>> e0c9262 (chore : 경로 수정.)
-
-    # retrieval
-    QUERY = "교육이나 학습 관련해서 다른 기관이 발주한 사업은 없나?"
-    contexts = run_retrieve(QUERY)
-
-    response_text, previous_response_id = generate_response(query=QUERY, retrieved_rfp_text=contexts)
-    
-    # 대화 이어서 하려면 previous_response_id 파라미터로 넣어줌.
-    response_text, previous_response_id = generate_response(query=QUERY, retrieved_rfp_text=contexts, previous_response_id=previous_response_id)
- e0c9262 (chore : 경로 수정.)
-
-    QUERY = "해외 지식 재산 센터 사업 관리 시스템 기능 개발 입찰 참가 자격"
-    run_retrieve(QUERY)
- e0c9262 (chore : 경로 수정.)
     
