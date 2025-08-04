@@ -2,7 +2,7 @@ from openai import OpenAI
 from config import PROMPT_TEMPLATE, DUMMY_QUERY_LIST, DUMMY_RFP_TEXT
 from pprint import pprint
 
-def generate_response(query: str, retrieved_rfp_text: str, temperature: float = 1.0):
+def generate_response(query: str, retrieved_rfp_text: str, previous_response_id: str = None, temperature: float = 1.0):
     """
     OpenAI API를 사용하여 주어진 쿼리와 RFP 문서 내용을 기반으로 응답을 생성한다.
 
@@ -28,7 +28,7 @@ def generate_response(query: str, retrieved_rfp_text: str, temperature: float = 
                 }
         ],
         # --- 대화 및 상태 관리 ---
-        # previous_response_id="이전 응답의 고유 ID이다. 여러 턴에 걸친 대화를 만들 때 사용한다.",
+        previous_response_id=previous_response_id, #"이전 응답의 고유 ID이다. 여러 턴에 걸친 대화를 만들 때 사용한다.",
         store=True,  # boolean | 생성된 응답을 나중에 검색할 수 있도록 저장할지 여부이다. 기본값: true
         background=False,  # boolean | 모델 응답을 백그라운드에서 실행할지 여부이다. 기본값: false
 
