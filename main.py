@@ -63,11 +63,10 @@ if __name__ == "__main__":
     
     generate_bm25_docs(
         input_dir=output_jsonl_dir,
-        output_pkl_path="src/retrieval/data/bm25_docs.pkl",
-        output_map_path="src/retrieval/data/bm25_chunk_id_map.json"
+        output_pkl_path="data/bm25_docs.pkl",
+        output_map_path="data/bm25_chunk_id_map.json"
     )
     
-    # retrieval
-    QUERY = "교육이나 학습 관련해서 다른 기관이 발주한 사업은 없나?"
+    QUERY = "해외 지식 재산 센터 사업 관리 시스템 기능 개발 입찰 참가 자격"
     run_retrieve(QUERY)
     
