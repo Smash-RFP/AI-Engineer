@@ -9,6 +9,8 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_chroma import Chroma
 from langchain.docstore.document import Document
 
+from src.generator.experiment.eval_performance import eval_llm
+from src.generator.llm_generator import generate_response
 from src.loader.preprocessing import extract_text_split_virtual_pages, sanitize_filename, save_chunks_as_jsonl
 from src.vectordb.vectordb import check_api_keys, load_and_parse_documents, add_documents_in_batches, save_chunk_id_mapping, run
 
@@ -75,4 +77,4 @@ if __name__ == "__main__":
     
     # 대화 이어서 하려면 previous_response_id 파라미터로 넣어줌.
     # response_text, previous_response_id = generate_response(query=QUERY, retrieved_rfp_text=contexts, previous_response_id=previous_response_id)
-    
+
