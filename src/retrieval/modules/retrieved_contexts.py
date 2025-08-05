@@ -33,11 +33,15 @@ def get_chunk_id_map(strategy: str):
         return None
 
 
-def get_contexts(query: str, strategy: str = "dense", use_cross_encoder: bool = False, top_k: int = TOP_K) -> List[str]:
-    # HyDE 쿼리 생성
-    hyde_query = generate_hypothetical_passage(query)
+def get_contexts(
+    query: str,
+    strategy: str = "dense",
+    use_cross_encoder: bool = False,
+    use_hyde: bool = True,
+    top_k: int = TOP_K
+) -> List[str]:
+    query_to_use = generate_hypothetical_passage(query) if use_hyde else query
 
-    # BM25 + Dense 설정
     if strategy == "hybrid":
         bm25_docs = load_bm25_documents(BM25_DOCS_PATH)
         bm25_retriever = init_bm25_retriever(bm25_docs, k=top_k)
@@ -47,7 +51,7 @@ def get_contexts(query: str, strategy: str = "dense", use_cross_encoder: bool = 
         dense_map = get_chunk_id_map("dense")
 
         results = hybrid_retrieve(
-            bm25_retriever, dense_retriever, [hyde_query],
+            bm25_retriever, dense_retriever, [query_to_use],
             alpha=HYBRID_ALPHA,
             bm25_chunk_id_map=bm25_map,
             dense_chunk_id_map=dense_map
@@ -69,30 +73,31 @@ def get_contexts(query: str, strategy: str = "dense", use_cross_encoder: bool = 
             return [r["retrieved_content"] for r in reranked[0]["results"]] if reranked else []
 
         else:
-            return [r["retrieved_content"] for r in results[0]["results"]] if results else []
+            return results[0]["results"] if results else []
 
-    # BM25 or Dense (공통 처리)
     else:
         retriever = get_retriever(strategy, top_k)
         chunk_id_map = get_chunk_id_map(strategy)
 
         if use_cross_encoder:
             model = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
-            results = retrieve_documents(retriever, [hyde_query], use_rerank=True, model=model, chunk_id_map=chunk_id_map)
+            results = retrieve_documents(retriever, [query_to_use], use_rerank=True, model=model, chunk_id_map=chunk_id_map)
         else:
-            results = retrieve_documents(retriever, [hyde_query], use_rerank=False, chunk_id_map=chunk_id_map)
+            results = retrieve_documents(retriever, [query_to_use], use_rerank=False, chunk_id_map=chunk_id_map)
 
-        return [r["retrieved_content"] for r in results[0]["results"]] if results else []
+        return results[0]["results"] if results else []
+
 
 
 def run_retrieve(QUERY):
     # 전략 설정
-    contexts = get_contexts(QUERY, strategy="dense", use_cross_encoder=True)
+    contexts = get_contexts(QUERY, strategy="hybrid", use_cross_encoder=True, use_hyde=False)
+
     
     for i, text in enumerate(contexts):
-        print(f"\n⚡ Top {i+1}:\n{text.strip()}")
+        print(f"\n⚡ Top {i+1}:")
+        print(f"Source ID: {text['retrieved_source_id']}")
+        print(f"Chunk ID: {text['retrieved_chunk_id']}")
+        print(f"Content:\n{text['retrieved_content'].strip()}")
     
     return contexts
-
-
-
