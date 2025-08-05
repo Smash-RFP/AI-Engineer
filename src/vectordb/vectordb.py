@@ -1,135 +1,138 @@
 import os
 import json
+import shutil
+import argparse
+from tqdm import tqdm
 
 from langchain_openai import OpenAIEmbeddings
 from langchain_chroma import Chroma
 from langchain.docstore.document import Document
 
-# openai api key
-def check_api_keys():
-    openai_key = os.getenv("OPENAI_API_KEY")
-
-    if openai_key:
-        print("설정 완료")
-    else:
-        print("설정 안됨")
-
-# 설정
-DUMMY_DATA_DIR = "/home/dlgsueh02/AI-Engineer/data/dummy"
-CHROMA_DB_DIR = "./chroma_db"
+# --- 설정 (기본값으로 사용) ---
+DEFAULT_DUMMY_DATA_DIR = "/home/dlgsueh02/AI-Engineer/data/dummy/lama_paser"
+DEFAULT_CHROMA_DB_DIR = "./chroma_db"
 COLLECTION_NAME = "rfp_documents"
 EMBEDDING_MODEL = "text-embedding-3-small"
 BATCH_SIZE = 100
 
-# JSON 파일 로드 및 문서 객체 생성 함수
+def check_api_keys():
+    """OpenAI API 키 설정 여부를 확인합니다."""
+    openai_key = os.getenv("OPENAI_API_KEY")
+    if openai_key:
+        print("✅ OpenAI API 키 설정 완료")
+    else:
+        print("⚠️ OpenAI API 키가 설정되지 않았습니다.")
+
 def load_and_parse_documents(source_dir):
+    """
+    지정된 디렉터리에서 JSONL 파일을 읽어 LangChain Document 객체 리스트로 변환합니다.
+    """
     all_documents = []
-    json_files = [f for f in os.listdir(DUMMY_DATA_DIR) if f.endswith(".json")]
+    # .jsonl 확장자를 가진 파일을 찾습니다.
+    jsonl_files = [f for f in os.listdir(source_dir) if f.endswith(".jsonl")]
 
-    print(f"\n총 {len(json_files)}개의 JSON 파일(RFP)을 처리합니다.")
+    print(f"\n총 {len(jsonl_files)}개의 JSONL 파일(RFP)을 처리합니다.")
 
-    for filename in json_files:
-        file_path = os.path.join(DUMMY_DATA_DIR, filename)
+    for filename in tqdm(jsonl_files, desc="JSONL 파일 처리 중"):
+        file_path = os.path.join(source_dir, filename)
+        docs_in_file_count = 0
         
         try:
             with open(file_path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-
-                # 딕셔너리 구조에서 'chunks' 키를 이용해 실제 청크 리스트를 가져옴
-                chunks_data = data.get("chunks", []) # .get()을 사용해 'chunks' 키가 없어도 오류 없이 빈 리스트 반환
-
-                if not chunks_data:
-                    print(f"  - [경고] {filename} 파일에 처리할 청크 데이터가 없습니다. 건너뜁니다.")
-                    continue
-
-                # 각 청크를 LangChain의 Document 객체로 변환
-                for chunk in chunks_data:
-                    # 'section' 정보를 메타데이터에 추가
-                    metadata = {
-                        "source_id": data.get("source_id", "N/A"),
-                        "source": data.get("filename", filename), # JSON 안의 파일명을 우선 사용
-                        "chunk_id": chunk.get("chunk_id"),
-                        "section": chunk.get("section", "N/A")    # section 정보가 없을 경우 대비
-                    }
+                # 파일을 한 줄씩 읽어 처리합니다. (JSONL 형식)
+                for line in f:
+                    # 빈 줄은 건너뜁니다.
+                    line = line.strip()
+                    if not line:
+                        continue
                     
-                    doc = Document(
-                        page_content=chunk.get("text", ""), # text가 없는 경우 대비
-                        metadata=metadata
-                    )
-                    all_documents.append(doc)
-                
-                print(f"  - [성공] {filename} ({len(chunks_data)}개 청크)")
+                    try:
+                        # 각 줄을 하나의 JSON 객체로 파싱합니다. (json.loads 사용)
+                        doc_data = json.loads(line)
+                        
+                        # LangChain Document 객체 생성
+                        doc = Document(
+                            # === 수정된 부분: "page_content" 대신 "text" 키에서 내용을 가져옵니다. ===
+                            page_content=doc_data.get("text", ""), 
+                            metadata=doc_data.get("metadata", {})
+                        )
+                        all_documents.append(doc)
+                        docs_in_file_count += 1
 
-        except json.JSONDecodeError:
-            print(f"  - [실패] {filename} 파일이 유효한 JSON 형식이 아닙니다.")
+                    except json.JSONDecodeError:
+                        tqdm.write(f"  - [경고] {filename} 파일의 특정 줄이 유효한 JSON 형식이 아닙니다. 해당 줄은 건너뜁니다.")
+            
+            if docs_in_file_count > 0:
+                tqdm.write(f"  - [성공] {filename} ({docs_in_file_count}개 문서 처리)")
+            else:
+                tqdm.write(f"  - [정보] {filename} 파일에 처리할 문서 데이터가 없습니다.")
+
         except Exception as e:
-            print(f"  - [실패] {filename} 처리 중 예측하지 못한 오류 발생: {e}")
+            tqdm.write(f"  - [실패] {filename}: 처리 중 오류 발생 - {e}")
 
-    print(f"\n총 {len(all_documents)}개의 유효한 문서 조각(청크)을 벡터 DB에 저장합니다.")
+    print(f"\n✅ 총 {len(all_documents)}개의 유효한 문서를 찾았습니다.")
     return all_documents
 
-#  벡터 DB에 데이터 저장 함수
 def add_documents_in_batches(vector_db, documents, batch_size):
-    if documents:
-    # 한 번에 처리할 청크 개수 (배치 사이즈)
-        batch_size = 100 
-        
-        print(f"\n총 {len(documents)}개의 청크를 {batch_size}개씩 나누어 처리합니다.")
+    """문서를 배치 단위로 나누어 벡터 DB에 추가합니다."""
+    if not documents:
+        print("\n⚠️ 처리할 문서가 없습니다.")
+        return
 
-        for i in range(0, len(documents), batch_size):
-            # all_documents 리스트에서 batch_size만큼 슬라이싱
-            batch = documents[i:i + batch_size]
-            
-            # 슬라이싱된 'batch'만 DB에 추가
-            vector_db.add_documents(batch)
-            
-            # 진행 상황 출력
-            print(f"  - {i + len(batch)} / {len(documents)} 처리 완료")
+    print(f"\n총 {len(documents)}개의 청크를 {batch_size}개씩 나누어 DB에 저장합니다.")
+    
+    for i in tqdm(range(0, len(documents), batch_size), desc="DB 저장 중"):
+        batch = documents[i:i + batch_size]
+        vector_db.add_documents(batch)
 
-        print("\n✅ 모든 문서의 임베딩 및 벡터 DB 저장이 완료되었습니다.")
+    print("\n✅ 모든 문서의 임베딩 및 벡터 DB 저장이 완료되었습니다.")
 
-    else:
-        print("\n⚠️ 처리할 문서가 없습니다. DUMMY_DATA_DIR 경로를 확인하세요.")
+def save_chunk_id_mapping(vector_db, save_path="chunk_id_map.json"):
+    """Chroma 내부 doc.id와 chunk_id를 매핑하여 저장"""
+    raw_data = vector_db._collection.get(include=["metadatas"])
+    ids = raw_data["ids"]              # 리스트 of doc.id
+    metadatas = raw_data["metadatas"]  # 리스트 of metadata dicts
 
+    mapping = {
+        doc_id: metadata.get("chunk_id", "unknown")
+        for doc_id, metadata in zip(ids, metadatas)
+    }
 
-# 구축된 벡터 DB 테스트 함수
-def test_vector_db_search(vector_db, query):
-    print("\n--- [검색 테스트] ---")
-    # 실제 RFP 내용과 관련 있을 법한 질문
-    query = "차세대 포털 시스템의 주요 기능 요건은 무엇인가?"
+    with open(save_path, "w", encoding="utf-8") as f:
+        json.dump(mapping, f, ensure_ascii=False, indent=2)
 
-    # retriever가 사용할 유사도 검색 기능 테스트
-    # k=3: 가장 유사한 청크 3개를 가져옴
-    retrieved_docs = vector_db.similarity_search(query, k=3)
+    print(f"chunk_id 매핑 {len(mapping)}개 저장 완료 → {save_path}")
 
-    if retrieved_docs:
-        print(f"❓ 질문: \"{query}\"")
-        print(f"\n🔍 검색된 유사 청크 Top {len(retrieved_docs)}개:")
-        print("-" * 60)
-        for i, doc in enumerate(retrieved_docs):
-            print(f"[{i+1}] 출처: {doc.metadata.get('source', 'N/A')} (ID: {doc.metadata.get('source_id', 'N/A')}, (청크 ID: {doc.metadata.get('chunk_id', 'N/A')})")
-            print(f"    - 섹션: {doc.metadata.get('section', 'N/A')}")
-            print(f"    - 내용: {doc.page_content[:500]}...") # 내용이 기므로 200자만 출력
-            print("-" * 60)
-    else:
-        print("검색된 문서가 없습니다.")
-
-def main():
+def run(data_dir, db_dir, rebuild):
+    """메인 실행 함수"""
+    if rebuild and os.path.exists(db_dir):
+        print(f"🔄 '{db_dir}' 폴더를 삭제하고 DB를 새로 구축합니다.")
+        shutil.rmtree(db_dir)
+    os.makedirs(db_dir, exist_ok=True)
 
     embedding_model = OpenAIEmbeddings(model=EMBEDDING_MODEL)
     vector_db = Chroma(
-        persist_directory=CHROMA_DB_DIR,
+        persist_directory=db_dir,
         embedding_function=embedding_model,
         collection_name=COLLECTION_NAME
     )
 
-    all_documents = load_and_parse_documents(DUMMY_DATA_DIR)
+    documents = load_and_parse_documents(data_dir)
+    add_documents_in_batches(vector_db, documents, BATCH_SIZE)
+    save_chunk_id_mapping(vector_db)
 
-    add_documents_in_batches(vector_db, all_documents, BATCH_SIZE)
+    print(f"\n--- [DB 상태 확인] ---")
+    count = vector_db._collection.count()
+    print(f"🔍 현재 DB에 저장된 문서 개수: {count}개")
 
-    test_query = "차세대 포털 시스템의 주요 기능 요건은 무엇인가?"
-    test_vector_db_search(vector_db, test_query)
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="JSONL 파일로부터 문서를 임베딩하여 ChromaDB에 저장합니다.")
+    parser.add_argument("--data_dir", type=str, default=DEFAULT_DUMMY_DATA_DIR, help="입력 JSONL 파일이 있는 디렉터리 경로")
+    parser.add_argument("--db_dir", type=str, default=DEFAULT_CHROMA_DB_DIR, help="ChromaDB를 저장할 디렉터리 경로")
+    parser.add_argument("--rebuild", action="store_true", help="이 플래그를 사용하면 기존 DB를 삭제하고 새로 구축합니다.")
+    
+    args = parser.parse_args()
+    
     check_api_keys()
-    main()
+    main(args.data_dir, args.db_dir, args.rebuild)
