@@ -65,16 +65,16 @@ if __name__ == "__main__":
     
     generate_bm25_docs(
         input_dir=output_jsonl_dir,
-        output_pkl_path="src/retrieval/data/bm25_docs.pkl",
-        output_map_path="src/retrieval/data/bm25_chunk_id_map.json"
+        output_pkl_path="data/bm25_docs.pkl",
+        output_map_path="data/bm25_chunk_id_map.json"
     )
     
     # retrieval
-    QUERY = "교육이나 학습 관련해서 다른 기관이 발주한 사업은 없나?"
+    QUERY = "해외 지식 재산 센터 사업 관리 시스템 기능 개발 입찰 참가 자격"
+    run_retrieve(QUERY)
     contexts = run_retrieve(QUERY)
 
-    response_text, previous_response_id = generate_response(query=QUERY, retrieved_rfp_text=contexts)
+    # response_text, previous_response_id = generate_response(query=QUERY, retrieved_rfp_text=contexts)
     
     # 대화 이어서 하려면 previous_response_id 파라미터로 넣어줌.
     response_text, previous_response_id = generate_response(query=QUERY, retrieved_rfp_text=contexts, previous_response_id=previous_response_id)
-    
