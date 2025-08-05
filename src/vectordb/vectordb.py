@@ -9,7 +9,7 @@ from langchain_chroma import Chroma
 from langchain.docstore.document import Document
 
 # --- 설정 (기본값으로 사용) ---
-DEFAULT_DUMMY_DATA_DIR = "/home/dlgsueh02/AI-Engineer/data/dummy/lama_paser"
+DEFAULT_DUMMY_DATA_DIR = "/home/dlgsueh02/AI-Engineer/data/dummy"
 DEFAULT_CHROMA_DB_DIR = "./chroma_db"
 COLLECTION_NAME = "rfp_documents"
 EMBEDDING_MODEL = "text-embedding-3-small"
@@ -83,6 +83,13 @@ def add_documents_in_batches(vector_db, documents, batch_size):
     
     for i in tqdm(range(0, len(documents), batch_size), desc="DB 저장 중"):
         batch = documents[i:i + batch_size]
+
+        for doc in batch:
+            for key, value in doc.metadata.items():
+                if isinstance(value, list):
+                    # 리스트의 각 항목을 문자열로 변환하고, 쉼표와 공백으로 연결된 하나의 문자열로 만듭니다.
+                    doc.metadata[key] = ", ".join(map(str, value))
+                    
         vector_db.add_documents(batch)
 
     print("\n✅ 모든 문서의 임베딩 및 벡터 DB 저장이 완료되었습니다.")
@@ -135,4 +142,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     check_api_keys()
-    main(args.data_dir, args.db_dir, args.rebuild)
+    run(args.data_dir, args.db_dir, args.rebuild)
