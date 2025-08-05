@@ -76,5 +76,5 @@ if __name__ == "__main__":
     response_text, previous_response_id = generate_response(query=QUERY, retrieved_rfp_text=contexts)
     
     # 대화 이어서 하려면 previous_response_id 파라미터로 넣어줌.
-    response_text, previous_response_id = generate_response(query=QUERY, retrieved_rfp_text=contexts, previous_response_id=previous_response_id)
+    # response_text, previous_response_id = generate_response(query=QUERY, retrieved_rfp_text=contexts, previous_response_id=previous_response_id)
     
