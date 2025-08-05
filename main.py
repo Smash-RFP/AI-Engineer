@@ -31,7 +31,7 @@ def run_batch_pipeline(input_dir, output_dir, threshold=1.0):
         except Exception as e:
             print(f" {file} 처리 실패: {e}")
 
-username = "gcp-JeOn"
+username = "eojin-kim"
 
 input_pdf_dir = f"/home/{username}/AI-Engineer/data"
 output_jsonl_dir = f"/home/{username}/AI-Engineer/data/dummy"
@@ -63,11 +63,12 @@ if __name__ == "__main__":
     )
     
     # retrieval
-    QUERY = "해외 지식 재산 센터 사업 관리 시스템 기능 개발 입찰 참가 자격"
+    QUERY = "고려대학교 정보시스템 구축사업에 대해 알려줘."
     run_retrieve(QUERY)
     contexts = run_retrieve(QUERY)
 
     response_text, previous_response_id = generate_response(query=QUERY, retrieved_rfp_text=contexts)
+    print('response_text: ', response_text)
     
     # 대화 이어서 하려면 previous_response_id 파라미터로 넣어줌.
     # response_text, previous_response_id = generate_response(query=QUERY, retrieved_rfp_text=contexts, previous_response_id=previous_response_id)  
