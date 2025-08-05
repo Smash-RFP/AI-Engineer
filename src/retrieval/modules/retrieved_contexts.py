@@ -39,7 +39,7 @@ def get_contexts(
     use_cross_encoder: bool = False,
     use_hyde: bool = True,
     top_k: int = TOP_K
-) -> List[str]:
+) -> List[dict]:
     query_to_use = generate_hypothetical_passage(query) if use_hyde else query
 
     if strategy == "hybrid":
@@ -70,10 +70,9 @@ def get_contexts(
             } for r in results]
 
             reranked = re_rank(cross_input, model=cross_encoder)
-            return [r["retrieved_content"] for r in reranked[0]["results"]] if reranked else []
+            return reranked[0]["results"] if reranked else []
 
-        else:
-            return results[0]["results"] if results else []
+        return results[0]["results"] if results else []
 
     else:
         retriever = get_retriever(strategy, top_k)
@@ -86,7 +85,6 @@ def get_contexts(
             results = retrieve_documents(retriever, [query_to_use], use_rerank=False, chunk_id_map=chunk_id_map)
 
         return results[0]["results"] if results else []
-
 
 
 def run_retrieve(QUERY):
