@@ -55,7 +55,32 @@ COLLECTION_NAME = "rfp_documents"
 EMBEDDING_MODEL = "text-embedding-3-small"
 BATCH_SIZE = 100
 
+<<<<<<< HEAD
 def continue_response(QUERY:str, previous_response_id=None):
+=======
+#  실행
+if __name__ == "__main__":
+    # run_batch_pipeline(input_pdf_dir, output_jsonl_dir, threshold=1.0)
+
+    # parser = argparse.ArgumentParser(description="JSONL 파일로부터 문서를 임베딩하여 ChromaDB에 저장합니다.")
+    # parser.add_argument("--data_dir", type=str, default=DEFAULT_DUMMY_DATA_DIR, help="입력 JSONL 파일이 있는 디렉터리 경로")
+    # parser.add_argument("--db_dir", type=str, default=DEFAULT_CHROMA_DB_DIR, help="ChromaDB를 저장할 디렉터리 경로")
+    # parser.add_argument("--rebuild", action="store_true", help="이 플래그를 사용하면 기존 DB를 삭제하고 새로 구축합니다.")
+    
+    # args = parser.parse_args()
+    
+    # check_api_keys()
+    # run(args.data_dir, args.db_dir, args.rebuild)
+    
+    # generate_bm25_docs(
+    #     input_dir=output_jsonl_dir,
+    #     output_pkl_path="data/bm25_docs.pkl",
+    #     output_map_path="data/bm25_chunk_id_map.json"
+    # )
+    
+    # retrieval
+    QUERY = "국민연금공단이 발주한 이러닝시스템 관련 사업 요구사항을 정리해 줘."
+>>>>>>> 02034dd (feat: main.py에서 대화 이어서 하는 방법에 대한 설명 추가)
     run_retrieve(QUERY)
     contexts = run_retrieve(QUERY)
     response_text, previous_response_id = generate_response(query=QUERY, retrieved_rfp_text=contexts, previous_response_id=previous_response_id)
@@ -66,6 +91,7 @@ def continue_response(QUERY:str, previous_response_id=None):
 #  실행
 if __name__ == "__main__":
     
+<<<<<<< HEAD
     # run_batch_pipeline(input_pdf_dir, output_jsonl_dir, threshold=1.0)     
     run_eda_pipeline(data_dir, output_eda_dir , output_jsonl_dir)
     
@@ -120,3 +146,38 @@ if __name__ == "__main__":
     # """
     # response_text, previous_response_id = continue_response("콘텐츠 개발 관리 요구 사항에 대해서 더 자세히 알려 줘." , previous_response_id)
     # response_text, previous_response_id = continue_response("교육이나 학습 관련해서 다른 기관이 발주한 사업은 없나?" , previous_response_id)
+=======
+    # 대화 이어서 하려면 previous_response_id 파라미터로 넣어줌.
+    """
+    대화를 이어하는 방법
+    1. Query 변수 값 변경
+    ex)
+
+    QUERY = "질문1"
+    run_retrieve(QUERY)     
+    contexts = run_retrieve(QUERY)
+    response_text, previous_response_id = generate_response(query=QUERY, retrieved_rfp_text=contexts, previous_response_id=previous_response_id)
+    print('response_text: ', response_text)
+
+    QUERY = "질문2"
+    run_retrieve(QUERY)
+    contexts = run_retrieve(QUERY)
+    response_text, previous_response_id = generate_response(query=QUERY, retrieved_rfp_text=contexts, previous_response_id=previous_response_id)
+    print('response_text: ', response_text)
+
+    QUERY = "질문3"
+    run_retrieve(QUERY)
+    contexts = run_retrieve(QUERY)
+    response_text, previous_response_id = generate_response(query=QUERY, retrieved_rfp_text=contexts, previous_response_id=previous_response_id)
+    print('response_text: ', response_text)
+
+    ...
+
+    """
+
+    # run_retrieve(QUERY)
+    # contexts = run_retrieve(QUERY)
+    # QUERY = "콘텐츠 개발 관리 요구 사항에 대해서 더 자세히 알려 줘."
+    # response_text, previous_response_id = generate_response(query=QUERY, retrieved_rfp_text=contexts, previous_response_id=previous_response_id)
+    # print('response_text: ', response_text)
+>>>>>>> 02034dd (feat: main.py에서 대화 이어서 하는 방법에 대한 설명 추가)
