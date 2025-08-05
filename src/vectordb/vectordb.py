@@ -94,7 +94,7 @@ def add_documents_in_batches(vector_db, documents, batch_size):
 
     print("\n✅ 모든 문서의 임베딩 및 벡터 DB 저장이 완료되었습니다.")
 
-def save_chunk_id_mapping(vector_db, save_path="chunk_id_map.json"):
+def save_chunk_id_mapping(vector_db, save_path="data/chunk_id_map.json"):
     """Chroma 내부 doc.id와 chunk_id를 매핑하여 저장"""
     raw_data = vector_db._collection.get(include=["metadatas"])
     ids = raw_data["ids"]              # 리스트 of doc.id
