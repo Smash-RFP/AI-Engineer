@@ -42,6 +42,14 @@ COLLECTION_NAME = "rfp_documents"
 EMBEDDING_MODEL = "text-embedding-3-small"
 BATCH_SIZE = 100
 
+def continue_response(QUERY:str, previous_response_id=None):
+    run_retrieve(QUERY)
+    contexts = run_retrieve(QUERY)
+    response_text, previous_response_id = generate_response(query=QUERY, retrieved_rfp_text=contexts, previous_response_id=previous_response_id)
+    print('response_text: ', response_text)
+
+    return response_text, previous_response_id
+
 #  실행
 if __name__ == "__main__":
     # run_batch_pipeline(input_pdf_dir, output_jsonl_dir, threshold=1.0)
@@ -70,36 +78,15 @@ if __name__ == "__main__":
     response_text, previous_response_id = generate_response(query=QUERY, retrieved_rfp_text=contexts)
     print('response_text: ', response_text)
     
-    # 대화 이어서 하려면 previous_response_id 파라미터로 넣어줌.
     """
     대화를 이어하는 방법
     1. Query 변수 값 변경
     ex)
 
-    QUERY = "질문1"
-    run_retrieve(QUERY)     
-    contexts = run_retrieve(QUERY)
-    response_text, previous_response_id = generate_response(query=QUERY, retrieved_rfp_text=contexts, previous_response_id=previous_response_id)
-    print('response_text: ', response_text)
-
-    QUERY = "질문2"
-    run_retrieve(QUERY)
-    contexts = run_retrieve(QUERY)
-    response_text, previous_response_id = generate_response(query=QUERY, retrieved_rfp_text=contexts, previous_response_id=previous_response_id)
-    print('response_text: ', response_text)
-
-    QUERY = "질문3"
-    run_retrieve(QUERY)
-    contexts = run_retrieve(QUERY)
-    response_text, previous_response_id = generate_response(query=QUERY, retrieved_rfp_text=contexts, previous_response_id=previous_response_id)
-    print('response_text: ', response_text)
-
+    response_text, previous_response_id = continue_response("콘텐츠 개발 관리 요구 사항에 대해서 더 자세히 알려 줘." , previous_response_id)
+    response_text, previous_response_id = continue_response("교육이나 학습 관련해서 다른 기관이 발주한 사업은 없나?" , previous_response_id)
     ...
 
     """
-
-    # run_retrieve(QUERY)
-    # contexts = run_retrieve(QUERY)
-    # QUERY = "콘텐츠 개발 관리 요구 사항에 대해서 더 자세히 알려 줘."
-    # response_text, previous_response_id = generate_response(query=QUERY, retrieved_rfp_text=contexts, previous_response_id=previous_response_id)
-    # print('response_text: ', response_text)
+    response_text, previous_response_id = continue_response("콘텐츠 개발 관리 요구 사항에 대해서 더 자세히 알려 줘." , previous_response_id)
+    response_text, previous_response_id = continue_response("교육이나 학습 관련해서 다른 기관이 발주한 사업은 없나?" , previous_response_id)
