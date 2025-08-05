@@ -1,5 +1,5 @@
 from openai import OpenAI
-from config import PROMPT_TEMPLATE, DUMMY_QUERY_LIST, DUMMY_RFP_TEXT
+from src.generator.config import PROMPT_TEMPLATE, DUMMY_QUERY_LIST, DUMMY_RFP_TEXT
 from pprint import pprint
 
 def generate_response(query: str, retrieved_rfp_text: str, previous_response_id: str = None, temperature: float = 1.0):
