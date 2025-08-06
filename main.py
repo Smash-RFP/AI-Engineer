@@ -72,6 +72,8 @@ if __name__ == "__main__":
     
     # retrieval
     response_text, previous_response_id = continue_response("국민연금공단이 발주한 이러닝시스템 관련 사업 요구사항을 정리해 줘.")
+    response_text, previous_response_id = continue_response("콘텐츠 개발 관리 요구 사항에 대해서 더 자세히 알려 줘." , previous_response_id)
+    response_text, previous_response_id = continue_response("교육이나 학습 관련해서 다른 기관이 발주한 사업은 없나?" , previous_response_id)
     
     """
     대화를 이어하는 방법
@@ -79,7 +81,4 @@ if __name__ == "__main__":
     response_text, previous_response_id = continue_response("콘텐츠 개발 관리 요구 사항에 대해서 더 자세히 알려 줘." , previous_response_id)
     response_text, previous_response_id = continue_response("교육이나 학습 관련해서 다른 기관이 발주한 사업은 없나?" , previous_response_id)
     ...
-
     """
-    response_text, previous_response_id = continue_response("콘텐츠 개발 관리 요구 사항에 대해서 더 자세히 알려 줘." , previous_response_id)
-    response_text, previous_response_id = continue_response("교육이나 학습 관련해서 다른 기관이 발주한 사업은 없나?" , previous_response_id)
