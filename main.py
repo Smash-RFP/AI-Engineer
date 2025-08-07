@@ -9,6 +9,8 @@ from src.loader.markdown_chunking_pipeline import run_chunking_pipeline
 from src.loader.data_eda import run_eda_pipeline
 
 from src.vectordb.vectordb import check_api_keys, run
+from src.vectordb.bm25_docs_generate_AB import generate_bm25_docs
+from src.vectordb.meta_embedding_generate_A import generate_meta_embeddings
 from src.retrieval.modules.bm25_docs_generate import generate_bm25_docs
 from src.retrieval.modules.retrieved_contexts import run_retrieve
 
@@ -26,8 +28,9 @@ chunk_trigger = os.path.join(output_jsonl_dir, "chunk_processed.flag")
 
 DEFAULT_DUMMY_DATA_DIR = os.path.join(base_dir, "data2", "output_jsonl")
 DEFAULT_CHROMA_DB_DIR = "./data2/chroma_db"
+DEFAULT_DATA_DIR = "data/cleaned_chunks"
+DEFAULT_SAVE_PATH = "data/meta_embedding_dict.pkl"
 COLLECTION_NAME = "rfp_documents"
-EMBEDDING_MODEL = "text-embedding-3-small"
 BATCH_SIZE = 100
 
 
@@ -74,6 +77,8 @@ def pipeline(user_query: str, previous_response_id=None, model: str = "gpt-4o-na
     else:
         print("🔍 청킹 파이프라인은 이미 처리됨. 건너뜀.")
 
+
+    EMBEDDING_MODEL = "text-embedding-3-small"
     parser = argparse.ArgumentParser(description="JSONL 파일로부터 문서를 임베딩하여 ChromaDB에 저장합니다.")
     parser.add_argument("--data_dir", type=str, default=DEFAULT_DUMMY_DATA_DIR, help="입력 JSONL 파일이 있는 디렉터리 경로")
     parser.add_argument("--db_dir", type=str, default=DEFAULT_CHROMA_DB_DIR, help="ChromaDB를 저장할 디렉터리 경로")
@@ -83,6 +88,37 @@ def pipeline(user_query: str, previous_response_id=None, model: str = "gpt-4o-na
     
     check_api_keys()
     run(args.data_dir, args.db_dir, args.rebuild)
+
+    generate_bm25_docs(
+            input_dir="data/cleaned_chunks",
+            output_pkl_path="data/bm25_docs.pkl",
+            output_map_path="data/bm25_chunk_id_map.json"
+        )
+    generate_meta_embeddings(DEFAULT_DATA_DIR, DEFAULT_SAVE_PATH)
+
+
+
+
+
+    # EMBEDDING_MODEL = "nlpai-lab/KURE-v1"
+    # parser = argparse.ArgumentParser(description="JSONL 파일로부터 문서를 임베딩하여 ChromaDB에 저장합니다.")
+    # parser.add_argument("--data_dir", type=str, default=DEFAULT_DUMMY_DATA_DIR, help="입력 JSONL 파일이 있는 디렉터리 경로")
+    # parser.add_argument("--db_dir", type=str, default=DEFAULT_CHROMA_DB_DIR, help="ChromaDB를 저장할 디렉터리 경로")
+    # parser.add_argument("--rebuild", action="store_true", help="이 플래그를 사용하면 기존 DB를 삭제하고 새로 구축합니다.")
+    
+    # args = parser.parse_args()
+    
+    # run(args.data_dir, args.db_dir, args.rebuild)
+
+    # generate_bm25_docs(
+    #         input_dir="data/cleaned_chunks",
+    #         output_pkl_path="data/bm25_docs.pkl",
+    #         output_map_path="data/bm25_chunk_id_map.json"
+    #     )
+    # generate_meta_embeddings(DEFAULT_DATA_DIR, DEFAULT_SAVE_PATH)
+
+    
+    
 
 
 if __name__ == "__main__":
