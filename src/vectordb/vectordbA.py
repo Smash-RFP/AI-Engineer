@@ -1,34 +1,35 @@
 import os
+import re
 import json
 import shutil
 import argparse
 from tqdm import tqdm
 
-from langchain_openai import OpenAIEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 from langchain.docstore.document import Document
 
 # --- 설정 (기본값으로 사용) ---
 DEFAULT_DUMMY_DATA_DIR = "/home/dlgsueh02/AI-Engineer/data/dummy"
-DEFAULT_CHROMA_DB_DIR = "./chroma_db"
-COLLECTION_NAME = "rfp_documents"
-EMBEDDING_MODEL = "text-embedding-3-small"
-BATCH_SIZE = 100
+DEFAULT_CHROMA_DB_DIR = "./chroma_db_kure"  # DB 디렉터리 이름 변경
+COLLECTION_NAME = "rfp_documents_kure"      # 컬렉션 이름 변경
 
-def check_api_keys():
-    """OpenAI API 키 설정 여부를 확인합니다."""
-    openai_key = os.getenv("OPENAI_API_KEY")
-    if openai_key:
-        print("✅ OpenAI API 키 설정 완료")
-    else:
-        print("⚠️ OpenAI API 키가 설정되지 않았습니다.")
+# --- 1. 사용할 HuggingFace 모델 지정 ---
+EMBEDDING_MODEL = "nlpai-lab/KURE-v1"
+BATCH_SIZE = 128
+
+def normalize_source_id(source_id: str) -> str:
+    text = source_id.replace(".json", "")
+    text = re.sub(r"[()]", "", text)
+    text = re.sub(r"[^\w]", "_", text)
+    text = re.sub(r"_+", "_", text)
+    return text.strip("_")
 
 def load_and_parse_documents(source_dir):
     """
     지정된 디렉터리에서 JSONL 파일을 읽어 LangChain Document 객체 리스트로 변환합니다.
     """
     all_documents = []
-    # .jsonl 확장자를 가진 파일을 찾습니다.
     jsonl_files = [f for f in os.listdir(source_dir) if f.endswith(".jsonl")]
 
     print(f"\n총 {len(jsonl_files)}개의 JSONL 파일(RFP)을 처리합니다.")
@@ -39,20 +40,19 @@ def load_and_parse_documents(source_dir):
         
         try:
             with open(file_path, "r", encoding="utf-8") as f:
-                # 파일을 한 줄씩 읽어 처리합니다. (JSONL 형식)
                 for line in f:
-                    # 빈 줄은 건너뜁니다.
                     line = line.strip()
                     if not line:
                         continue
                     
                     try:
-                        # 각 줄을 하나의 JSON 객체로 파싱합니다. (json.loads 사용)
                         doc_data = json.loads(line)
                         
                         metadata = doc_data.get("metadata", {})
                         
-                        source_id = metadata.get("source_id", "")
+                        source_id = normalize_source_id(metadata.get("source_id", ""))
+                        metadata["source_id"] = source_id
+                        
                         keywords = metadata.get("keywords", "")
                     
                         if isinstance(keywords, list):
@@ -106,8 +106,8 @@ def add_documents_in_batches(vector_db, documents, batch_size):
 def save_chunk_id_mapping(vector_db, save_path="data/chunk_id_map.json"):
     """Chroma 내부 doc.id와 chunk_id를 매핑하여 저장"""
     raw_data = vector_db._collection.get(include=["metadatas"])
-    ids = raw_data["ids"]              # 리스트 of doc.id
-    metadatas = raw_data["metadatas"]  # 리스트 of metadata dicts
+    ids = raw_data["ids"]
+    metadatas = raw_data["metadatas"]
 
     mapping = {
         doc_id: metadata.get("chunk_id", "unknown")
@@ -125,8 +125,14 @@ def run(data_dir, db_dir, rebuild):
         print(f"🔄 '{db_dir}' 폴더를 삭제하고 DB를 새로 구축합니다.")
         shutil.rmtree(db_dir)
     os.makedirs(db_dir, exist_ok=True)
-
-    embedding_model = OpenAIEmbeddings(model=EMBEDDING_MODEL)
+    
+    # --- 2. HuggingFaceEmbeddings 객체 생성 ---
+    embedding_model = HuggingFaceEmbeddings(
+        model_name=EMBEDDING_MODEL,
+        model_kwargs={'device': 'cuda'},
+        encode_kwargs={'normalize_embeddings': True}, # E5 모델은 normalize_embeddings를 True로 설정하는 것이 좋습니다.
+    )
+    
     vector_db = Chroma(
         persist_directory=db_dir,
         embedding_function=embedding_model,
@@ -134,6 +140,7 @@ def run(data_dir, db_dir, rebuild):
     )
 
     doc_count = vector_db._collection.count()
+
     if doc_count > 0 and not rebuild:
         print(f"\n✅ DB가 이미 '{db_dir}'에 존재하며 {doc_count}개의 문서가 저장되어 있습니다.")
         print("   새로 구축하려면 --rebuild 플래그를 사용하세요.")
@@ -158,5 +165,4 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     
-    check_api_keys()
     run(args.data_dir, args.db_dir, args.rebuild)

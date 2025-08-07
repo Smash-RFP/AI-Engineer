@@ -1,17 +1,13 @@
 import os
 import re
 import json
-from pathlib import Path
 from typing import List, Dict
 from tqdm import tqdm
 from collections import defaultdict
+import fnmatch
 
 # --- 반복된 문구 제거 (특정 패턴 기반) ---
 def remove_repeated_phrases(text):
-    """
-    텍스트 내에서 반복되는 단어나 구문(한글/영문/숫자)을 제거합니다.
-    표 형식 또는 이미지 경로는 보존합니다.
-    """
     def is_table_or_ascii_art(line):
         return (
             line.strip().startswith("|") or
@@ -42,7 +38,6 @@ def remove_repeats_top_n_pages(pages: List[str], n=3) -> List[str]:
         for i, p in enumerate(pages)
     ]
 
-# --- 유틸 함수 ---
 def sanitize_filename(filename: str) -> str:
     return re.sub(r'[\s\W]+', '_', filename)
 
@@ -55,7 +50,6 @@ def clean_source_id(raw_name: str) -> str:
     )
     return sanitize_filename(cleaned)
 
-# --- ## 기준 청킹 ---
 def extract_chunks_by_double_sharp(lines: List[str]) -> List[Dict]:
     pattern = r'^##\s+(.+)'
     chunks = []
@@ -82,7 +76,6 @@ def extract_chunks_by_double_sharp(lines: List[str]) -> List[Dict]:
         })
     return chunks
 
-# --- 400자 미만 병합 ---
 def merge_small_chunks_min400(chunks: List[Dict], min_len: int = 400) -> List[Dict]:
     merged = []
     buffer = {"lines": [], "keywords": []}
@@ -115,17 +108,7 @@ def merge_small_chunks_min400(chunks: List[Dict], min_len: int = 400) -> List[Di
         })
     return merged
 
-# --- 전체 청킹 파이프라인 ---
-def full_markdown_chunking(text: str, file_name: str) -> List[Dict]:    
-    
-    """
-    입력된 Markdown 텍스트를 페이지 단위로 나눈 후,
-    - 상위 3페이지의 반복 문구 제거
-    - '## ' 마크다운 헤더 기준으로 청킹
-    - 400자 미만 청크 병합
-    - 최종적으로 청크와 키워드 정리
-    """   
-    
+def full_markdown_chunking(text: str, file_name: str) -> List[Dict]:
     source_id = clean_source_id(file_name)
     pages = text.split('\f')
     cleaned = remove_repeats_top_n_pages(pages, n=3)
@@ -144,7 +127,6 @@ def full_markdown_chunking(text: str, file_name: str) -> List[Dict]:
         })
     return final_chunks
 
-# --- 키워드 정제 함수 ---
 def clean_keywords(keywords):
     cleaned = []
     for kw in keywords:
@@ -155,7 +137,6 @@ def clean_keywords(keywords):
             cleaned.append(kw)
     return list(dict.fromkeys(cleaned))
 
-# --- ID 포함 청크 변환 ---
 def convert_chunks_with_id_per_source(chunks_by_source):
     result = {}
     for raw_source_id, chunk_list in chunks_by_source.items():
@@ -175,35 +156,28 @@ def convert_chunks_with_id_per_source(chunks_by_source):
             })
     return result
 
-# --- 실행 메인 ---
-def run_chunking_pipeline(root_dir: Path, output_dir: Path):
-        
-    """
-    root_dir 내의 '-with-image-refs.md' 파일을 모두 찾아,
-    1. 반복 문구 제거
-    2. 마크다운 청킹
-    3. 키워드 정제 및 ID 부여
-    4. JSONL 형식으로 output_dir에 저장
-    """    
-    
-    output_dir.mkdir(parents=True, exist_ok=True)
+def run_chunking_pipeline(root_dir: str, output_dir: str):
+    os.makedirs(output_dir, exist_ok=True)
     chunks_by_source_id = defaultdict(list)
 
-    for md_file in tqdm(root_dir.rglob("*-with-image-refs.md")):
-        with md_file.open("r", encoding="utf-8") as f:
-            content = f.read()
-            raw_file_name = md_file.stem
-            source_id = clean_source_id(raw_file_name)
-            chunks = full_markdown_chunking(content, source_id)
-            for ch in chunks:
-                ch["source_id"] = source_id
-                chunks_by_source_id[source_id].append(ch)
+    # 파일 탐색: "-with-image-refs.md"만 찾기
+    for dirpath, _, filenames in os.walk(root_dir):
+        for filename in fnmatch.filter(filenames, "*-with-image-refs.md"):
+            md_path = os.path.join(dirpath, filename)
+            with open(md_path, "r", encoding="utf-8") as f:
+                content = f.read()
+                raw_file_name = os.path.splitext(filename)[0]
+                source_id = clean_source_id(raw_file_name)
+                chunks = full_markdown_chunking(content, source_id)
+                for ch in chunks:
+                    ch["source_id"] = source_id
+                    chunks_by_source_id[source_id].append(ch)
 
     converted_chunks_dict = convert_chunks_with_id_per_source(chunks_by_source_id)
 
     for source_id, chunk_list in converted_chunks_dict.items():
         file_name = f"{source_id}.jsonl"
-        file_path = output_dir / file_name
+        file_path = os.path.join(output_dir, file_name)
         with open(file_path, "w", encoding="utf-8") as f:
             for item in chunk_list:
                 json.dump(item, f, ensure_ascii=False)
