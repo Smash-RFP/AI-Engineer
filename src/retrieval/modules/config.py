@@ -5,5 +5,7 @@ HYBRID_ALPHA = 0.6    # 0.0 = pure BM25, 1.0 = pure Dense
 COLLECTION_NAME = "rfp_documents"
 
 # 경로
-VECTOR_DB_PATH = "data/chroma_db"
-BM25_DOCS_PATH = "data/bm25_docs.pkl"
+import os
+BASE_DIR = os.path.dirname(os.path.abspath(__file__)) 
+VECTOR_DB_PATH = os.path.join(BASE_DIR, "data/chroma_db")
+BM25_DOCS_PATH = os.path.join(BASE_DIR, "data/bm25_docs.pkl")
