@@ -2,8 +2,8 @@ import os
 from typing import List
 
 from .config import (
-    BM25_DOCS_PATH, VECTOR_DB_PATH, TOP_K, HYBRID_ALPHA
-)
+    BM25_DOCS_PATH, VECTOR_DB_PATH, TOP_K, HYBRID_ALPHA, DATA_DIR
+)   
 
 from .retrieval import (
     generate_hypothetical_passage, retrieve_documents,
@@ -26,9 +26,9 @@ def get_retriever(strategy: str, top_k: int):
 
 def get_chunk_id_map(strategy: str):
     if strategy == "bm25":
-        return load_json("data/bm25_chunk_id_map.json")
+        return load_json(f"{DATA_DIR}/bm25_chunk_id_map.json")
     elif strategy == "dense":
-        return load_json("data/chunk_id_map.json")
+        return load_json(f"{DATA_DIR}/chunk_id_map.json")
     else:
         return None
 

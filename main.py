@@ -42,13 +42,38 @@ COLLECTION_NAME = "rfp_documents"
 EMBEDDING_MODEL = "text-embedding-3-small"
 BATCH_SIZE = 100
 
-def continue_response(QUERY:str, previous_response_id=None):
-    run_retrieve(QUERY)
-    contexts = run_retrieve(QUERY)
-    response_text, previous_response_id = generate_response(query=QUERY, retrieved_rfp_text=contexts, previous_response_id=previous_response_id)
+def openai_llm_response(user_query:str, previous_response_id=None, model:str="gpt-4.1-nano"):
+    # 리트리버
+    run_retrieve(user_query)
+    contexts = run_retrieve(user_query)
+
+    # llm 응답 생성
+    response_text, previous_response_id = generate_response(query=user_query, retrieved_rfp_text=contexts, previous_response_id=previous_response_id, model=model)
     print('response_text: ', response_text)
 
     return response_text, previous_response_id
+
+def huggingface_llm_response(user_query:str, previous_response_id=None, model:str="gpt-4o-nano"):
+    # 리트리버
+    run_retrieve(user_query)
+    contexts = run_retrieve(user_query)
+
+    # llm 응답 생성
+
+    return response_text
+
+def pipeline(user_query:str, previous_response_id=None, model:str="gpt-4o-nano"):
+    """
+    if 전처리 되어있지 않으면:
+        전처리 코드
+        임베딩
+
+    if 만약 모델이 gpt 관련 모델
+        openai_llm_response()
+    else:
+        huggingface_llm_response()
+    """
+
 
 #  실행
 if __name__ == "__main__":
@@ -70,15 +95,18 @@ if __name__ == "__main__":
     #     output_map_path="data/bm25_chunk_id_map.json"
     # )
     
-    # retrieval
-    response_text, previous_response_id = continue_response("국민연금공단이 발주한 이러닝시스템 관련 사업 요구사항을 정리해 줘.")
-    response_text, previous_response_id = continue_response("콘텐츠 개발 관리 요구 사항에 대해서 더 자세히 알려 줘." , previous_response_id)
-    response_text, previous_response_id = continue_response("교육이나 학습 관련해서 다른 기관이 발주한 사업은 없나?" , previous_response_id)
+    # 시나리오A 대화 이어하기
+
+    
+    # 시나리오B 대화 이어하기. 
+    response_text, previous_response_id = openai_llm_response(user_query="국민연금공단이 발주한 이러닝시스템 관련 사업 요구사항을 정리해 줘.", model="gpt-4o-nano")
+    response_text, previous_response_id = openai_llm_response(user_query="콘텐츠 개발 관리 요구 사항에 대해서 더 자세히 알려 줘." , previous_response_id=previous_response_id, model="gpt-4o-nano")
+    response_text, previous_response_id = openai_llm_response(user_query="교육이나 학습 관련해서 다른 기관이 발주한 사업은 없나?" , previous_response_id=previous_response_id, model="gpt-4o-nano")
     
     """
     대화를 이어하는 방법
     ex)
-    response_text, previous_response_id = continue_response("콘텐츠 개발 관리 요구 사항에 대해서 더 자세히 알려 줘." , previous_response_id)
-    response_text, previous_response_id = continue_response("교육이나 학습 관련해서 다른 기관이 발주한 사업은 없나?" , previous_response_id)
+    response_text, previous_response_id = openai_llm_response(user_query="콘텐츠 개발 관리 요구 사항에 대해서 더 자세히 알려 줘." , previous_response_id=previous_response_id)
+    response_text, previous_response_id = openai_llm_response(user_query="교육이나 학습 관련해서 다른 기관이 발주한 사업은 없나?" , previous_response_id=previous_response_id)
     ...
     """
