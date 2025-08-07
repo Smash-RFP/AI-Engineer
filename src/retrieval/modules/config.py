@@ -6,6 +6,9 @@ COLLECTION_NAME = "rfp_documents"
 
 # 경로
 import os
-BASE_DIR = os.path.dirname(os.path.abspath(__file__)) 
-VECTOR_DB_PATH = os.path.join(BASE_DIR, "data/chroma_db")
-BM25_DOCS_PATH = os.path.join(BASE_DIR, "data/bm25_docs.pkl")
+# ai_engineer 기준 루트 경로 고정
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../.."))
+
+DATA_DIR = os.path.join(ROOT_DIR, "data")
+VECTOR_DB_PATH = os.path.join(DATA_DIR, "chroma_db")
+BM25_DOCS_PATH = os.path.join(DATA_DIR, "bm25_docs.pkl")
