@@ -39,10 +39,10 @@ from src.retrieval.modules.retrieved_contexts import run_retrieve
 
 username = "daeseok"
 
-data_dir = f"/home/{username}/AI-Engineer/data"
-output_docling_dir = f"/home/{username}/AI-Engineer/data/output_docling"
-output_jsonl_dir = Path(f"/home/{username}/AI-Engineer/data/output_jsonl")
-output_eda_dir = f"/home/{username}/AI-Engineer/data/output_eda"
+data_dir = f"/home/{username}/AI-Engineer/data2"
+output_docling_dir = f"/home/{username}/AI-Engineer/data2/output_docling"
+output_jsonl_dir = Path(f"/home/{username}/AI-Engineer/data2/output_jsonl")
+output_eda_dir = f"/home/{username}/AI-Engineer/data2/output_eda"
 
 pdf_trigger = Path(output_docling_dir) / "pdf_processed.flag"
 chunk_trigger = Path(output_jsonl_dir) / "chunk_processed.flag"
@@ -59,31 +59,62 @@ def continue_response(QUERY:str, previous_response_id=None):
     response_text, previous_response_id = generate_response(query=QUERY, retrieved_rfp_text=contexts, previous_response_id=previous_response_id)
     print('response_text: ', response_text)
 
+    return response_text, previous_response_id 
+
+def openai_llm_response(user_query:str, previous_response_id=None, model:str="gpt-4.1-nano"):
+    # 리트리버
+    run_retrieve(user_query)
+    contexts = run_retrieve(user_query)
+
+    # llm 응답 생성
+    response_text, previous_response_id = generate_response(query=user_query, retrieved_rfp_text=contexts, previous_response_id=previous_response_id, model=model)
+    print('response_text: ', response_text)
+
     return response_text, previous_response_id
+
+def huggingface_llm_response(user_query:str, previous_response_id=None, model:str="gpt-4o-nano"):
+    # 리트리버
+    run_retrieve(user_query)
+    contexts = run_retrieve(user_query)
+
+    # llm 응답 생성
+
+    return response_text
+
+def pipeline(user_query:str, previous_response_id=None, model:str="gpt-4o-nano"):
+    
+    # run_eda_pipeline(data_dir, output_eda_dir , output_jsonl_dir)   
+    
+    if not pdf_trigger.exists():
+        print(" PDF 파이프라인 실행 중...")
+        run_pdf_pipeline(input_dir=data_dir, output_dir=output_docling_dir)
+        pdf_trigger.touch()
+    else:
+        print(" PDF 파이프라인은 이미 처리됨. 건너뜀.")
+
+    #  Markdown → JSONL 청킹
+    if not chunk_trigger.exists():
+        print(" Markdown 청킹 파이프라인 실행 중...")
+        run_chunking_pipeline(root_dir=Path(output_docling_dir), output_dir=Path(output_jsonl_dir))
+        chunk_trigger.touch()
+    else:
+        print(" 청킹 파이프라인은 이미 처리됨. 건너뜀.")      
+    
+    
+    """  
+    if 만약 모델이 gpt 관련 모델
+        openai_llm_response()
+    else:
+        huggingface_llm_response()
+    """
+
 
 #  실행
 if __name__ == "__main__":
-        
-    # run_batch_pipeline(input_pdf_dir, output_jsonl_dir, threshold=1.0) 
     
-    chunk_trigger.touch()
-       
-    # run_eda_pipeline(data_dir, output_eda_dir , output_jsonl_dir)    
+    pipeline("hello",None,"test_model")
     
-    # if not pdf_trigger.exists():
-    #     print(" PDF 파이프라인 실행 중...")
-    #     run_pdf_pipeline(input_dir=data_dir, output_dir=output_docling_dir)
-    #     pdf_trigger.touch()
-    # else:
-    #     print(" PDF 파이프라인은 이미 처리됨. 건너뜀.")
-
-    # #  Markdown → JSONL 청킹
-    # if not chunk_trigger.exists():
-    #     print(" Markdown 청킹 파이프라인 실행 중...")
-    #     run_chunking_pipeline(root_dir=Path(output_docling_dir), output_dir=Path(output_jsonl_dir))
-    #     chunk_trigger.touch()
-    # else:
-    #     print(" 청킹 파이프라인은 이미 처리됨. 건너뜀.")         
+    # run_batch_pipeline(input_pdf_dir, output_jsonl_dir, threshold=1.0)
 
     # parser = argparse.ArgumentParser(description="JSONL 파일로부터 문서를 임베딩하여 ChromaDB에 저장합니다.")
     # parser.add_argument("--data_dir", type=str, default=DEFAULT_DUMMY_DATA_DIR, help="입력 JSONL 파일이 있는 디렉터리 경로")
@@ -99,17 +130,20 @@ if __name__ == "__main__":
     #     input_dir=output_jsonl_dir,
     #     output_pkl_path="data/bm25_docs.pkl",
     #     output_map_path="data/bm25_chunk_id_map.json"
-    # )    
-
-    # # retrieval
-    # response_text, previous_response_id = continue_response("국민연금공단이 발주한 이러닝시스템 관련 사업 요구사항을 정리해 줘.")
-    # response_text, previous_response_id = continue_response("콘텐츠 개발 관리 요구 사항에 대해서 더 자세히 알려 줘." , previous_response_id)
-    # response_text, previous_response_id = continue_response("교육이나 학습 관련해서 다른 기관이 발주한 사업은 없나?" , previous_response_id)
+    # )
     
-    # """
-    # 대화를 이어하는 방법
-    # ex)
-    # response_text, previous_response_id = continue_response("콘텐츠 개발 관리 요구 사항에 대해서 더 자세히 알려 줘." , previous_response_id)
-    # response_text, previous_response_id = continue_response("교육이나 학습 관련해서 다른 기관이 발주한 사업은 없나?" , previous_response_id)
-    # ...
-    # """
+    # 시나리오A 대화 이어하기
+
+    
+    # 시나리오B 대화 이어하기. 
+    # response_text, previous_response_id = openai_llm_response(user_query="국민연금공단이 발주한 이러닝시스템 관련 사업 요구사항을 정리해 줘.", model="gpt-4o-nano")
+    # response_text, previous_response_id = openai_llm_response(user_query="콘텐츠 개발 관리 요구 사항에 대해서 더 자세히 알려 줘." , previous_response_id=previous_response_id, model="gpt-4o-nano")
+    # response_text, previous_response_id = openai_llm_response(user_query="교육이나 학습 관련해서 다른 기관이 발주한 사업은 없나?" , previous_response_id=previous_response_id, model="gpt-4o-nano")
+    
+    """
+    대화를 이어하는 방법
+    ex)
+    response_text, previous_response_id = openai_llm_response(user_query="콘텐츠 개발 관리 요구 사항에 대해서 더 자세히 알려 줘." , previous_response_id=previous_response_id)
+    response_text, previous_response_id = openai_llm_response(user_query="교육이나 학습 관련해서 다른 기관이 발주한 사업은 없나?" , previous_response_id=previous_response_id)
+    ...
+    """

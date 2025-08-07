@@ -2,25 +2,26 @@ from openai import OpenAI
 from src.generator.config import PROMPT_TEMPLATE, DUMMY_QUERY_LIST, DUMMY_RFP_TEXT
 from pprint import pprint
 
-def generate_response(query: str, retrieved_rfp_text: str, previous_response_id: str = None, temperature: float = 1.0):
+def generate_response(user_query: str, retrieved_rfp_text: str, previous_response_id: str = None, temperature: float = 1.0, model: str = "gpt-4.1-nano"):
     """
     OpenAI API를 사용하여 주어진 쿼리와 RFP 문서 내용을 기반으로 응답을 생성한다.
 
-    query: 사용자가 입력한 질문
+    user_query: 사용자가 입력한 질문
     retrieved_rfp_text: RFP 문서 내용
     temperature: 모델의 샘플링 온도로, 0~2 사이 값. (기본값: 1.0)
+    model: 사용할 모델 이름
     반환값: 생성된 응답 텍스트와 이전 응답 ID
     """
     client = OpenAI()
     # 프롬프트 템플릿에 사용자 질문과 RFP 문서 내용을 삽입
     completed_prompt = PROMPT_TEMPLATE.format(
         retrieved_rfp_text=retrieved_rfp_text,
-        new_user_text=query,
+        new_user_text=user_query,
     )
 
     # OpenAI API를 사용하여 응답 생성
     response = client.responses.create(
-        model="gpt-4.1-nano",
+        model=model,
         input=[
                 {
                     "role": "user",
@@ -52,7 +53,7 @@ def generate_response(query: str, retrieved_rfp_text: str, previous_response_id:
 
 if __name__ == "__main__":
     response_text, previous_response_id = generate_response(
-        query=DUMMY_QUERY_LIST[0], 
+        user_query=DUMMY_QUERY_LIST[0], 
         retrieved_rfp_text=DUMMY_RFP_TEXT
     )
 
