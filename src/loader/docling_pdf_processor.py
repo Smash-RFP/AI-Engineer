@@ -1,5 +1,7 @@
 import logging
 import time
+import sys
+sys.setrecursionlimit(5000)
 from pathlib import Path
 from enum import Enum
 from docling_core.types.doc import PictureItem, TableItem
