@@ -1,4 +1,3 @@
-# src/retrieval/data/bm25_docs_generate.py
 import os
 import json
 import pickle

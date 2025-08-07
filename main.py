@@ -11,14 +11,14 @@ from src.loader.data_eda import run_eda_pipeline
 from src.vectordb.vectordb import check_api_keys, run
 from src.vectordb.bm25_docs_generate_AB import generate_bm25_docs
 from src.vectordb.meta_embedding_generate_A import generate_meta_embeddings
-from src.retrieval.modules.bm25_docs_generate import generate_bm25_docs
-from src.retrieval.modules.retrieved_contexts import run_retrieve
+from src.retrieval.retrieval_run import retrieved_contexts
 
 
-username = "dlgsueh02"
+
+username = "gcp-JeOn-8"
 
 base_dir = f"/home/{username}/AI-Engineer"
-data_dir = os.path.join(base_dir, "data2")
+data_dir = os.path.join(base_dir, "data")
 output_docling_dir = os.path.join(data_dir, "output_docling")
 output_jsonl_dir = os.path.join(data_dir, "output_jsonl")
 output_eda_dir = os.path.join(data_dir, "output_eda")
@@ -26,9 +26,8 @@ output_eda_dir = os.path.join(data_dir, "output_eda")
 pdf_trigger = os.path.join(output_docling_dir, "pdf_processed.flag")
 chunk_trigger = os.path.join(output_jsonl_dir, "chunk_processed.flag")
 
-DEFAULT_DUMMY_DATA_DIR = os.path.join(base_dir, "data2", "output_jsonl")
-DEFAULT_CHROMA_DB_DIR = "./data2/chroma_db"
-DEFAULT_DATA_DIR = "data/cleaned_chunks"
+DEFAULT_DUMMY_DATA_DIR = os.path.join(base_dir, "data", "output_jsonl")
+DEFAULT_CHROMA_DB_DIR = "./data/chroma_db"
 DEFAULT_SAVE_PATH = "data/meta_embedding_dict.pkl"
 COLLECTION_NAME = "rfp_documents"
 BATCH_SIZE = 100
@@ -43,18 +42,18 @@ def continue_response(QUERY: str, previous_response_id=None):
     print('response_text: ', response_text)
     return response_text, previous_response_id
 
-def openai_llm_response(user_query: str, previous_response_id=None, model: str = "gpt-4.1-nano"):
-    run_retrieve(user_query)
-    contexts = run_retrieve(user_query)
+
+def openai_llm_response(user_query: str, previous_response_id=None, model: str = "gpt-4.1-nano", embedding_model="text-embedding-3-small"):
+    contexts = retrieved_contexts(user_query, model_name=embedding_model, provider="openai")
     response_text, previous_response_id = generate_response(
         query=user_query, retrieved_rfp_text=contexts, previous_response_id=previous_response_id, model=model
     )
     print('response_text: ', response_text)
     return response_text, previous_response_id
 
-def huggingface_llm_response(user_query: str, previous_response_id=None, model: str = "gpt-4o-nano"):
-    run_retrieve(user_query)
-    contexts = run_retrieve(user_query)
+
+def huggingface_llm_response(user_query: str, previous_response_id=None, model: str = "gpt-4o-nano", embedding_model="nlpai-lab/KoE5"):
+    contexts = retrieved_contexts(user_query, model_name=embedding_model, provider="huggingface")
     return "response_text"  # 수정 필요 시 구현
 
 
@@ -90,12 +89,15 @@ def pipeline(user_query: str, previous_response_id=None, model: str = "gpt-4o-na
     run(args.data_dir, args.db_dir, args.rebuild)
 
     generate_bm25_docs(
-            input_dir="data/cleaned_chunks",
+            input_dir=output_jsonl_dir,
             output_pkl_path="data/bm25_docs.pkl",
             output_map_path="data/bm25_chunk_id_map.json"
         )
-    generate_meta_embeddings(DEFAULT_DATA_DIR, DEFAULT_SAVE_PATH)
-
+    
+    generate_meta_embeddings(data_dir=DEFAULT_DUMMY_DATA_DIR, save_path=DEFAULT_SAVE_PATH, model_name=EMBEDDING_MODEL, provider="openai")
+    
+    
+    contexts = retrieved_contexts(query=user_query, model_name=EMBEDDING_MODEL, provider="openai")
 
 
 
@@ -115,11 +117,11 @@ def pipeline(user_query: str, previous_response_id=None, model: str = "gpt-4o-na
     #         output_pkl_path="data/bm25_docs.pkl",
     #         output_map_path="data/bm25_chunk_id_map.json"
     #     )
-    # generate_meta_embeddings(DEFAULT_DATA_DIR, DEFAULT_SAVE_PATH)
-
+    
+    # generate_meta_embeddings(data_dir=DEFAULT_DUMMY_DATA_DIR, save_path=DEFAULT_SAVE_PATH, model_name=EMBEDDING_MODEL, provider="huggingface")
     
     
 
 
 if __name__ == "__main__":
-    pipeline("hello", None, "test_model")
+    pipeline("체육 특기자 경기기록 관리 시스템의 추진계획", None, "test_model")
