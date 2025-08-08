@@ -1,3 +1,5 @@
+# 🤖 PDF Text Summarization and Q&A Chatbot
+
 ![Image](https://github.com/user-attachments/assets/edbbb58c-dc59-4b8e-8967-fb5767dd1fc1)
 
 ---
@@ -15,43 +17,30 @@
 ---
 
 
-## 👤 팀원 소개
-|       | 이름           | Notion                                                                                                     | 역할                                | 담당 업무                                                                                                    |
-| :----- | :----- | :----- | :----- | :----- |
-| 🧑‍💻 | **김어진** (팀장) | [협업일지 🚀](https://efficient-saver-88c.notion.site/Daily-238880186a9f8076a5cce4d0fb21e783?source=copy_link) | LLM & Prompt Engineer             | - LLM 기반 질의응답 설계 및 프롬프트 엔지니어링<br>- FrontEnd / BackEnd 개발                                                 |
-| 👩‍💻 | **김하늘**      | [협업일지 🚀](https://www.notion.so/23806aa61633804eabd8f6ec466e277d)                                          | LLM & Prompt Engineer             | - LLM 기반 질의응답 설계 <br>- 프롬프트 엔지니어링 및 응답 최적화                                                               |
-| 🧑‍💻 | **이대석**      | [협업일지 🚀](https://typhoon-friend-92d.notion.site/2378dd9e8ab380d082eedca33ac04203)                         | RFP Document Structuring Engineer | - RFP 문서 데이터 EDA 및 통계 분석<br>- 텍스트/표/이미지 등 구조적 요소 추출<br>- 마크다운 기반 청킹 파이프라인 설계 및 구현<br>- 각 청크에 대한 메타데이터 생성 |
-| 🧑‍💻 | **이현도**      | [협업일지 🚀](https://www.notion.so/1fc5a0ce825e80278ec2e8b670db03fe)                                          | Vector Database Engineer          | - 임베딩 및 Vector DB 구축 (FAISS/ChromaDB)<br>- 쿼리 매칭 및 효율적 검색 구현                                             |
-| 👩‍💻 | **전혜정**      | [협업일지 🚀](https://www.notion.so/23926cc555b4819180a5d94818e700b3?source=copy_link)                         | Retrieval Engineer                | - HyDE, Hybrid, rerank 기반 Retriever 개발<br>- 검색 성능 평가 및 개선                                                |
-
-
----
-
-
 ## 🛠️ 기술 스택
-### [ languages ]
+#### < languages >
 <div>
   <img src="https://img.shields.io/badge/python-3776AB?style=for-the-badge&logo=python&logoColor=white">
   <img src="https://img.shields.io/badge/nodedotjs-5FA04E?style=for-the-badge&logo=nodedotjs&logoColor=white">
 </div>
 
-### [ Frameworks ]
+#### < Frameworks >
 <div>
   <img src="https://img.shields.io/badge/pytorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white">
   <img src="https://img.shields.io/badge/langchain-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white">
-  <img src="https://img.shields.io/badge/huggingface-FFD21E?style=for-the-badge&logo=huggingface&logoColor=white">
-  <img src="https://img.shields.io/badge/openai-412991?style=for-the-badge&logo=openai&logoColor=white">
+  <img src="https://img.shields.io/badge/huggingface-f1a805?style=for-the-badge&logo=huggingface&logoColor=ffffff">
+  <img src="https://img.shields.io/badge/openai-050A52?style=for-the-badge&logo=openai&logoColor=white">
   <img src="https://img.shields.io/badge/numpy-013243?style=for-the-badge&logo=numpy&logoColor=white">
   <img src="https://img.shields.io/badge/fastapi-009688?style=for-the-badge&logo=fastapi&logoColor=white">
 </div>
 
-### [ Tool ]
+#### < Tool >
 <div>
   <img src="https://img.shields.io/badge/googlecloud-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white">
+  <img src="https://img.shields.io/badge/googlecolab-F58320?style=for-the-badge&logo=googlecolab&logoColor=white">
   <img src="https://img.shields.io/badge/anaconda-44A833?style=for-the-badge&logo=anaconda&logoColor=white">
-  <img src="https://img.shields.io/badge/notion-000000?style=for-the-badge&logo=notion&logoColor=white">
-  <img src="https://img.shields.io/badge/googlecolab-F9AB00?style=for-the-badge&logo=googlecolab&logoColor=white">
-  <img src="https://img.shields.io/badge/visualstudio-196AFF?style=for-the-badge&logo=visualstudio&logoColor=white">
+  <img src="https://img.shields.io/badge/visualstudio-0082fb?style=for-the-badge&logo=visualstudio&logoColor=white">
+  <img src="https://img.shields.io/badge/notion-f2eee9?style=for-the-badge&logo=notion&logoColor=black">
 </div>
 
 
@@ -91,24 +80,31 @@ AI-Engineer/
 
 ## 🦾 모델
 
-### ▶ Preprocessing & Chunking
-- [**Docling**](https://docling-project.github.io/docling/) : 문서 전처리 및 청킹
+[![Docling](https://img.shields.io/badge/Preprocessing-Docling-f2f1f0)](https://docling-project.github.io/docling/)
 
-### ▶ DB & Embedding
-- [**text-embedding-3-small**](https://platform.openai.com/docs/models/text-embedding-3-small) : OpenAI 경량 임베딩 모델
-- [**BAAI/bge-m3**](https://huggingface.co/BAAI/bge-m3) : 범용 멀티모달 임베딩 모델
+[![text-embedding-3-small](https://img.shields.io/badge/OpenAI-text--embedding--3--small-768c45)](https://platform.openai.com/docs/models/text-embedding-3-small)
+[![BAAI/bge-m3](https://img.shields.io/badge/HF-BAAI%2Fbge--m3-768c45)](https://huggingface.co/BAAI/bge-m3)
 
-### ▶ Retrieval
-- [**cross-encoder/ms-marco-MiniLM-L-6-v2**](https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2) : 문서 재정렬(reranking) 모델
+[![Cross Encoder](https://img.shields.io/badge/Rerank-MiniLM--L--6--v2-f2f1f0)](https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2)
 
-### ▶ Prompt
-- [**MessagesPlaceholder**](https://python.langchain.com/api_reference/core/prompts/langchain_core.prompts.chat.MessagesPlaceholder.html) : 대화 프롬프트 템플릿
+[![MessagesPlaceholder](https://img.shields.io/badge/Prompt-MessagesPlaceholder-3f7373)](https://python.langchain.com/api_reference/core/prompts/langchain_core.prompts.chat.MessagesPlaceholder.html)
 
-### ▶ LLM
-- [**Qwen3-8B (양자화)**](https://huggingface.co/Qwen/Qwen3-8B) : 대규모 언어 모델
-- [**SFTTrainer**](https://huggingface.co/docs/trl/en/sft_trainer) : Supervised Fine-tuning Trainer
+[![Qwen3-8B](https://img.shields.io/badge/LLM-Qwen3--8B-f2f1f0)](https://huggingface.co/Qwen/Qwen3-8B)
+[![SFTTrainer](https://img.shields.io/badge/Trainer-SFTTrainer-f2f1f0)](https://huggingface.co/docs/trl/en/sft_trainer)
+
+---
+
+## 👤 팀원 소개
+|       | 이름           | Notion                                                                                                     | 역할                                | 담당 업무                                                                                                    |
+| :----- | :----- | :----- | :----- | :----- |
+| 🧑‍💻 | **김어진** (팀장) | [협업일지 🚀](https://efficient-saver-88c.notion.site/Daily-238880186a9f8076a5cce4d0fb21e783?source=copy_link) | LLM & Prompt Engineer             | - LLM 기반 질의응답 설계 및 프롬프트 엔지니어링<br>- FrontEnd / BackEnd 개발                                                 |
+| 👩‍💻 | **김하늘**      | [협업일지 🚀](https://www.notion.so/23806aa61633804eabd8f6ec466e277d)                                          | LLM & Prompt Engineer             | - LLM 기반 질의응답 설계 <br>- 프롬프트 엔지니어링 및 응답 최적화                                                               |
+| 🧑‍💻 | **이대석**      | [협업일지 🚀](https://typhoon-friend-92d.notion.site/2378dd9e8ab380d082eedca33ac04203)                         | RFP Document Structuring Engineer | - RFP 문서 데이터 EDA 및 통계 분석<br>- 텍스트/표/이미지 등 구조적 요소 추출<br>- 마크다운 기반 청킹 파이프라인 설계 및 구현<br>- 각 청크에 대한 메타데이터 생성 |
+| 🧑‍💻 | **이현도**      | [협업일지 🚀](https://www.notion.so/1fc5a0ce825e80278ec2e8b670db03fe)                                          | Vector Database Engineer          | - 임베딩 및 Vector DB 구축 (FAISS/ChromaDB)<br>- 쿼리 매칭 및 효율적 검색 구현                                             |
+| 👩‍💻 | **전혜정**      | [협업일지 🚀](https://www.notion.so/23926cc555b4819180a5d94818e700b3?source=copy_link)                         | Retrieval Engineer                | - HyDE, Hybrid, rerank 기반 Retriever 개발<br>- 검색 성능 평가 및 개선                                                |
 
 
+---
 
 ---
 
