@@ -1,8 +1,4 @@
-
-<p align="left">
-  <img src = "https://github.com/user-attachments/assets/0614b1f8-8ef7-4129-b8a9-f632d2030bc1">
-</p>
-
+![Image](https://github.com/user-attachments/assets/77010f9a-5677-4302-a197-bb35a6878b25)
 
 ---
 
