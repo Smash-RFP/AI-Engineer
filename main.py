@@ -33,22 +33,10 @@ DEFAULT_SAVE_PATH = "data/meta_embedding_dict.pkl"
 COLLECTION_NAME = "rfp_documents"
 BATCH_SIZE = 32
 
-
-def continue_response(QUERY: str, previous_response_id=None):
-    contexts = retrieved_contexts(user_query, model_name=embedding_model, provider="huggingface")
-    contexts = retrieved_contexts(user_query, model_name=embedding_model, provider="huggingface")
-
-    response_text, previous_response_id = generate_response(
-        query=QUERY, retrieved_rfp_text=contexts, previous_response_id=previous_response_id
-    )
-    print('response_text: ', response_text)
-    return response_text, previous_response_id
-
-
 def openai_llm_response(user_query: str, previous_response_id=None, model: str = "gpt-4.1-nano", embedding_model="text-embedding-3-small"):
     contexts = retrieved_contexts(user_query, model_name=embedding_model, provider="openai")
     response_text, previous_response_id = generate_response(
-        query=user_query, retrieved_rfp_text=contexts, previous_response_id=previous_response_id, model=model
+        user_query=user_query, retrieved_rfp_text=contexts, previous_response_id=previous_response_id, model=model
     )
     print('response_text: ', response_text)
     return response_text, previous_response_id
@@ -59,8 +47,7 @@ def huggingface_llm_response(user_query: str, previous_response_id=None, model: 
     return "response_text"  # 수정 필요 시 구현
 
 
-def pipeline(user_query: str, previous_response_id=None, model: str = "gpt-4o-nano"):
-
+def pipeline(user_query: str, previous_response_id=None, model: str = "gpt-4.1-nano"):
     # if not os.path.exists(pdf_trigger):
     #     print("📄 PDF 파이프라인 실행 중...")
     #     run_pdf_pipeline(input_dir=data_dir, output_dir=output_docling_dir)
@@ -127,4 +114,4 @@ def pipeline(user_query: str, previous_response_id=None, model: str = "gpt-4o-na
 
 
 if __name__ == "__main__":
-    pipeline("체육 특기자 경기기록 관리 시스템의 추진계획", None, "test_model")
+    pipeline('고려대학교 추진사업에대해 자세히 알려줘')
