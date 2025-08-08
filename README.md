@@ -1,6 +1,8 @@
 
 [시연 영상](https://youtu.be/AqXHLaE00Hs)
 
+https://github.com/Smash-RFP/AI-Engineer/issues/44#issue-3303446380
+
 <br>
 
 💡 프로젝트 개요
