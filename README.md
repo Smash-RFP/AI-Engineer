@@ -1,7 +1,7 @@
 
-[시연 영상](https://youtu.be/AqXHLaE00Hs)
-
-https://github.com/Smash-RFP/AI-Engineer/issues/44#issue-3303446380
+<p align="left">
+  <img src = "https://github.com/user-attachments/assets/0614b1f8-8ef7-4129-b8a9-f632d2030bc1">
+</p>
 
 <br>
 
