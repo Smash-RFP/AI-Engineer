@@ -3,20 +3,23 @@
   <img src = "https://github.com/user-attachments/assets/0614b1f8-8ef7-4129-b8a9-f632d2030bc1">
 </p>
 
-<br>
 
-💡 프로젝트 개요
 ---
+
+
+## 💡 프로젝트 개요
 - **B2G 입찰지원 전문 컨설팅 스타트업   'Smash-RFP'**
 - **RFP 내용을 분석·요약과 즉각적인 질의응답 기능을 제공하는 AI 챗봇 서비스 구현**
 
 >매일 수백 건의 RFP가 쏟아지지만, 수십 페이지씩 일일이 읽기는 버겁습니다. 
 ><br>
 >**Smash-RFP**는 관련 문서를 빠르게 찾아 실시간으로 질문에 답해 문서 검토 시간을 대폭 줄여드립니다.
----
-<br>
 
-## 팀원 소개
+
+---
+
+
+## 👤 팀원 소개
 |       | 이름           | Notion                                                                                                     | 역할                                | 담당 업무                                                                                                    |
 | :----- | :----- | :----- | :----- | :----- |
 | 🧑‍💻 | **김어진** (팀장) | [협업일지 🚀](https://efficient-saver-88c.notion.site/Daily-238880186a9f8076a5cce4d0fb21e783?source=copy_link) | LLM & Prompt Engineer             | - LLM 기반 질의응답 설계 및 프롬프트 엔지니어링<br>- FrontEnd / BackEnd 개발                                                 |
@@ -25,16 +28,38 @@
 | 🧑‍💻 | **이현도**      | [협업일지 🚀](https://www.notion.so/1fc5a0ce825e80278ec2e8b670db03fe)                                          | Vector Database Engineer          | - 임베딩 및 Vector DB 구축 (FAISS/ChromaDB)<br>- 쿼리 매칭 및 효율적 검색 구현                                             |
 | 👩‍💻 | **전혜정**      | [협업일지 🚀](https://www.notion.so/23926cc555b4819180a5d94818e700b3?source=copy_link)                         | Retrieval Engineer                | - HyDE, Hybrid, rerank 기반 Retriever 개발<br>- 검색 성능 평가 및 개선                                                |
 
-<br>
 
-## 기술 스택
-**개발 환경** : ![Google Cloud](https://img.shields.io/badge/GoogleCloud-%234285F4.svg?style=for-the-badge&logo=google-cloud&logoColor=white) ![Anaconda](https://img.shields.io/badge/Anaconda-%2344A833.svg?style=for-the-badge&logo=anaconda&logoColor=white) ![Visual Studio](https://img.shields.io/badge/Visual%20Studio-5C2D91.svg?style=for-the-badge&logo=visual-studio&logoColor=white)
+---
 
-**언어** : ![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54) ![NodeJS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white)
 
-**라이브러리** : ![PyTorch](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?style=for-the-badge&logo=PyTorch&logoColor=white) 
+## 🛠️ 기술 스택
+#### [languages]
+<div>
+  <img src="https://img.shields.io/badge/python-3776AB?style=for-the-badge&logo=python&logoColor=white">
+  <img src="https://img.shields.io/badge/nodedotjs-5FA04E?style=for-the-badge&logo=nodedotjs&logoColor=white">
+</div>
 
-<br>
+#### [Frameworks]
+<div>
+  <img src="https://img.shields.io/badge/pytorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white">
+  <img src="https://img.shields.io/badge/langchain-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white">
+  <img src="https://img.shields.io/badge/huggingface-FFD21E?style=for-the-badge&logo=huggingface&logoColor=white">
+  <img src="https://img.shields.io/badge/openai-412991?style=for-the-badge&logo=openai&logoColor=white">
+  <img src="https://img.shields.io/badge/numpy-013243?style=for-the-badge&logo=numpy&logoColor=white">
+  <img src="https://img.shields.io/badge/fastapi-009688?style=for-the-badge&logo=fastapi&logoColor=white">
+</div>
+
+#### [Tool]
+<div>
+  <img src="https://img.shields.io/badge/googlecloud-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white">
+  <img src="https://img.shields.io/badge/anaconda-44A833?style=for-the-badge&logo=anaconda&logoColor=white">
+  <img src="https://img.shields.io/badge/notion-000000?style=for-the-badge&logo=notion&logoColor=white">
+  <img src="https://img.shields.io/badge/googlecolab-F9AB00?style=for-the-badge&logo=googlecolab&logoColor=white">
+  <img src="https://img.shields.io/badge/visualstudio-196AFF?style=for-the-badge&logo=visualstudio&logoColor=white">
+</div>
+
+
+---
 
 
 ## 📁 프로젝트 구조
