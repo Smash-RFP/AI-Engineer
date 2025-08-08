@@ -1,5 +1,5 @@
 
-## [시연 영상](https://youtu.be/AqXHLaE00Hs)
+![시연 영상]([https://youtu.be/AqXHLaE00Hs](https://github.com/Smash-RFP/AI-Engineer/issues/44#issue-3303446380))
 
 <br>
 
