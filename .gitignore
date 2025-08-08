@@ -6,7 +6,6 @@ data/*
 /src/vectordb/chroma_db/
 
 # 기타 무시
-README.md
 gitflow/
 __pycache__/
 *.pyc
