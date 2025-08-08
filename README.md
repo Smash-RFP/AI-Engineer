@@ -29,13 +29,13 @@
 
 
 ## 🛠️ 기술 스택
-#### [languages]
+### [ languages ]
 <div>
   <img src="https://img.shields.io/badge/python-3776AB?style=for-the-badge&logo=python&logoColor=white">
   <img src="https://img.shields.io/badge/nodedotjs-5FA04E?style=for-the-badge&logo=nodedotjs&logoColor=white">
 </div>
 
-#### [Frameworks]
+### [ Frameworks ]
 <div>
   <img src="https://img.shields.io/badge/pytorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white">
   <img src="https://img.shields.io/badge/langchain-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white">
@@ -45,7 +45,7 @@
   <img src="https://img.shields.io/badge/fastapi-009688?style=for-the-badge&logo=fastapi&logoColor=white">
 </div>
 
-#### [Tool]
+### [ Tool ]
 <div>
   <img src="https://img.shields.io/badge/googlecloud-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white">
   <img src="https://img.shields.io/badge/anaconda-44A833?style=for-the-badge&logo=anaconda&logoColor=white">
@@ -86,7 +86,30 @@ AI-Engineer/
 - **`src/retriever/`**  :   사용자의 질의에 대해 벡터 유사도를 기반으로 관련 문서를 검색합니다.
 - **`src/generator/`**  :   검색된 문서를 기반으로 LLM을 활용해 최종 응답을 생성합니다.
 - **`README.md`**  :   프로젝트에 대한 개요와 사용법을 설명한 문서입니다.
-  
+
+---
+
+## 🦾 모델
+
+### ▶ Preprocessing & Chunking
+- [**Docling**](https://docling-project.github.io/docling/) : 문서 전처리 및 청킹
+
+### ▶ DB & Embedding
+- [**text-embedding-3-small**](https://platform.openai.com/docs/models/text-embedding-3-small) : OpenAI 경량 임베딩 모델
+- [**BAAI/bge-m3**](https://huggingface.co/BAAI/bge-m3) : 범용 멀티모달 임베딩 모델
+
+### ▶ Retrieval
+- [**cross-encoder/ms-marco-MiniLM-L-6-v2**](https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2) : 문서 재정렬(reranking) 모델
+
+### ▶ Prompt
+- [**MessagesPlaceholder**](https://python.langchain.com/api_reference/core/prompts/langchain_core.prompts.chat.MessagesPlaceholder.html) : 대화 프롬프트 템플릿
+
+### ▶ LLM
+- [**Qwen3-8B (양자화)**](https://huggingface.co/Qwen/Qwen3-8B) : 대규모 언어 모델
+- [**SFTTrainer**](https://huggingface.co/docs/trl/en/sft_trainer) : Supervised Fine-tuning Trainer
+
+
+
 ---
 
 ## 🤖 배포 링크
