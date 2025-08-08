@@ -1,3 +1,7 @@
+![시연 영상](https://youtu.be/AqXHLaE00Hs)
+
+<br>
+
 💡 프로젝트 개요
 ---
 - **B2G 입찰지원 전문 컨설팅 스타트업   'Smash-RFP'**
@@ -7,7 +11,27 @@
 ><br>
 >**Smash-RFP**는 관련 문서를 빠르게 찾아 실시간으로 질문에 답해 문서 검토 시간을 대폭 줄여드립니다.
 ---
+<br>
 
+## 팀원 소개
+|       | 이름           | Notion                                                                                                     | 역할                                | 담당 업무                                                                                                    |
+| :----- | :----- | :----- | :----- | :----- |
+| 🧑‍💻 | **김어진** (팀장) | [협업일지 🚀](https://efficient-saver-88c.notion.site/Daily-238880186a9f8076a5cce4d0fb21e783?source=copy_link) | LLM & Prompt Engineer             | - LLM 기반 질의응답 설계 및 프롬프트 엔지니어링<br>- FrontEnd / BackEnd 개발                                                 |
+| 👩‍💻 | **김하늘**      | [협업일지 🚀](https://www.notion.so/23806aa61633804eabd8f6ec466e277d)                                          | LLM & Prompt Engineer             | - LLM 기반 질의응답 설계 <br>- 프롬프트 엔지니어링 및 응답 최적화                                                               |
+| 🧑‍💻 | **이대석**      | [협업일지 🚀](https://typhoon-friend-92d.notion.site/2378dd9e8ab380d082eedca33ac04203)                         | RFP Document Structuring Engineer | - RFP 문서 데이터 EDA 및 통계 분석<br>- 텍스트/표/이미지 등 구조적 요소 추출<br>- 마크다운 기반 청킹 파이프라인 설계 및 구현<br>- 각 청크에 대한 메타데이터 생성 |
+| 🧑‍💻 | **이현도**      | [협업일지 🚀](https://www.notion.so/1fc5a0ce825e80278ec2e8b670db03fe)                                          | Vector Database Engineer          | - 임베딩 및 Vector DB 구축 (FAISS/ChromaDB)<br>- 쿼리 매칭 및 효율적 검색 구현                                             |
+| 👩‍💻 | **전혜정**      | [협업일지 🚀](https://www.notion.so/23926cc555b4819180a5d94818e700b3?source=copy_link)                         | Retrieval Engineer                | - HyDE, Hybrid, rerank 기반 Retriever 개발<br>- 검색 성능 평가 및 개선                                                |
+
+<br>
+
+## 기술 스택
+**개발 환경** : ![Google Cloud](https://img.shields.io/badge/GoogleCloud-%234285F4.svg?style=for-the-badge&logo=google-cloud&logoColor=white) ![Anaconda](https://img.shields.io/badge/Anaconda-%2344A833.svg?style=for-the-badge&logo=anaconda&logoColor=white) ![Visual Studio](https://img.shields.io/badge/Visual%20Studio-5C2D91.svg?style=for-the-badge&logo=visual-studio&logoColor=white)
+
+**언어** : ![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54) ![NodeJS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white)
+
+**라이브러리** : ![PyTorch](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?style=for-the-badge&logo=PyTorch&logoColor=white) 
+
+<br>
 
 
 ## 📁 프로젝트 구조
@@ -50,14 +74,3 @@ AI-Engineer/
 [🔗 Smash-RFP 최종 보고서](https://drive.google.com/drive/u/0/folders/1GEZdSbp-1DeFFZcOvhO3g0gv_ip3Zutk)
 
 ---
-
-## 📝 협업 일지
-<div align="center">
-
-|     | 이름&nbsp;&nbsp; |                                                     Notion                                                     |
-| :-: | :--------------: | :------------------------------------------------------------------------------------------------------------: |
-| 🧑‍💻  |    **김어진**    | [협업일지 🚀](https://efficient-saver-88c.notion.site/Daily-238880186a9f8076a5cce4d0fb21e783?source=copy_link) |
-| 👩‍💻  |    **전혜정**    |             [협업일지 🚀](https://www.notion.so/23926cc555b4819180a5d94818e700b3?source=copy_link)             |
-| 🧑‍💻  |    **이대석**    |             [협업일지 🚀](https://typhoon-friend-92d.notion.site/2378dd9e8ab380d082eedca33ac04203)             |
-| 🧑‍💻  |    **이현도**    |                     [협업일지 🚀](https://www.notion.so/1fc5a0ce825e80278ec2e8b670db03fe)                      |
-| 👩‍💻  |    **김하늘**    |                     [협업일지 🚀](https://www.notion.so/23806aa61633804eabd8f6ec466e277d)                      |
