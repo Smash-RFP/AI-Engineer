@@ -1,3 +1,15 @@
+💡 프로젝트 개요
+---
+- **B2G 입찰지원 전문 컨설팅 스타트업   'Smash-RFP'**
+- **RFP 내용을 분석·요약과 즉각적인 질의응답 기능을 제공하는 AI 챗봇 서비스 구현**
+
+>매일 수백 건의 RFP가 쏟아지지만, 수십 페이지씩 일일이 읽기는 버겁습니다. 
+><br>
+>**Smash-RFP**는 관련 문서를 빠르게 찾아 실시간으로 질문에 답해 문서 검토 시간을 대폭 줄여드립니다.
+---
+
+
+
 ## 📁 프로젝트 구조
 
 ```
@@ -27,19 +39,19 @@ AI-Engineer/
 - **`src/generator/`**  :   검색된 문서를 기반으로 LLM을 활용해 최종 응답을 생성합니다.
 - **`README.md`**  :   프로젝트에 대한 개요와 사용법을 설명한 문서입니다.
   
-<br>
+---
 
-## 배포 링크
-[웹 서비스 링크](https://codeit-rfp-ai.netlify.app/)
+## 🤖 배포 링크
+[🔗 Smash-RFP 챗 서비스 바로가기](https://codeit-rfp-ai.netlify.app/)
 
-<br>
+---
 
-## 보고서 PDF 링크
-[보고서 PDF 링크](https://drive.google.com/drive/u/0/folders/1GEZdSbp-1DeFFZcOvhO3g0gv_ip3Zutk)
+## 📜 보고서 PDF 링크
+[🔗 Smash-RFP 최종 보고서](https://drive.google.com/drive/u/0/folders/1GEZdSbp-1DeFFZcOvhO3g0gv_ip3Zutk)
 
-<br>
+---
 
-## 협업 일지
+## 📝 협업 일지
 <div align="center">
 
 |     | 이름&nbsp;&nbsp; |                                                     Notion                                                     |
