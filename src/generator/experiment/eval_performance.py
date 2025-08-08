@@ -5,9 +5,50 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
 from pprint import pp
 import time
 import json
+import tempfile
+import re
 
 
-from src.generator.config import DUMMY_RFP_TEXT
+from src.generator.config import DUMMY_RFP_TEXT, PROMPT_DATASET_PATH
+
+
+def normalize_text(text: str) -> str:
+    """라벨/응답의 불필요한 마크다운/공백을 정규화하여 표면적 표현 차이를 줄인다."""
+    if not isinstance(text, str):
+        return text
+    normalized = text
+    # 마크다운 특수기호 제거
+    normalized = re.sub(r"[*_`]+", "", normalized)
+    # 연속 공백/개행 축약
+    normalized = re.sub(r"\s+", " ", normalized).strip()
+    return normalized
+
+
+def preprocess_prompt_dataset(input_path: str) -> str:
+    """JSONL의 item.label을 경량 정규화하여 임시 파일 경로를 반환한다."""
+    tmp_file = tempfile.NamedTemporaryFile(
+        mode="w", suffix=".jsonl", prefix="evals_norm_", delete=False, encoding="utf-8"
+    )
+    try:
+        with open(input_path, "r", encoding="utf-8") as f_in, tmp_file as f_out:
+            for line in f_in:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    obj = json.loads(line)
+                except json.JSONDecodeError:
+                    f_out.write(line + "\n")
+                    continue
+
+                item = obj.get("item", obj)
+                if isinstance(item, dict) and "label" in item:
+                    item["label"] = normalize_text(item["label"])  # type: ignore[index]
+                obj["item"] = item
+                f_out.write(json.dumps(obj, ensure_ascii=False) + "\n")
+        return tmp_file.name
+    except Exception:
+        return input_path
 
 def create_eval_obj(client, name):
     # evals.create 함수를 호출하여 새로운 평가(evaluation) 작업을 생성한다.
@@ -29,13 +70,27 @@ def create_eval_obj(client, name):
         },
         # 평가 작업의 성공/실패 여부를 판단하는 기준 목록이다.
         testing_criteria=[
-             {
+            {
                 "type": "text_similarity",
-                "name": 'meteor grader',
+                "name": "meteor grader",
                 "input": "{{  sample.output_text  }}",
                 "reference": "{{  item.label  }}",
-                "evaluation_metric": "meteor" # "fuzzy_match" | "bleu" | "gleu" | "meteor" | "cosine" | "rouge_1" | "rouge_2" | "rouge_3" | "rouge_4" | "rouge_5" | "rouge_l" 
-            }
+                "evaluation_metric": "meteor",
+            },
+            {
+                "type": "text_similarity",
+                "name": "rouge_l grader",
+                "input": "{{  sample.output_text  }}",
+                "reference": "{{  item.label  }}",
+                "evaluation_metric": "rouge_l",
+            },
+            {
+                "type": "text_similarity",
+                "name": "cosine grader",
+                "input": "{{  sample.output_text  }}",
+                "reference": "{{  item.label  }}",
+                "evaluation_metric": "cosine",
+            },
         ],
     )
 
@@ -109,15 +164,16 @@ def retrieve_eval_result(client, eval_obj, run):
     return result
 
 def eval_llm(model: str = 'gpt-4.1-nano', 
-            file_path: str = "/home/eojin-kim/AI-Engineer/src/generator/experiment/test_dataset/prompt.jsonl",
-            retrieved_rfp_text: str = DUMMY_RFP_TEXT
+            file_path: str = PROMPT_DATASET_PATH,
+            retrieved_rfp_text: str = DUMMY_RFP_TEXT,
+            normalize_dataset: bool = True
             ):
     eval_name = "RFP_Evaluation"
 
     client = OpenAI()
-
     eval_obj = create_eval_obj(client, eval_name)
-    file = upload_data(client, file_path)
+    upload_path = preprocess_prompt_dataset(file_path) if normalize_dataset else file_path
+    file = upload_data(client, upload_path)
     run = run_eval(client, eval_obj, file, eval_name, model, retrieved_rfp_text)
 
     print("평가 작업이 제출되었습니다. 완료될 때까지 대기합니다.")
@@ -146,19 +202,25 @@ def eval_llm(model: str = 'gpt-4.1-nano',
     output_items = output_items.model_dump()
     print('output_items: ', output_items)
 
-    # score, response 출력
+    # 다양한 메트릭 점수와 응답을 출력
     for v in output_items['data']:
-        score = v['results'][0]['score'] 
-        response = v['sample']['output'][0]['content']
-        print('score:', score)
-        print('response:', response)
+        results = v.get('results', [])
+        print('scores:')
+        for r in results:
+            print(f"  - {r.get('name')}: {r.get('score')}")
+        try:
+            response = v['sample']['output'][0]['content']
+            print('response:', response)
+        except Exception:
+            pass
     
     return output_items
 
 if __name__ == "__main__":
     output_items = eval_llm(model = 'gpt-4.1-nano', 
-            file_path = "/home/eojin-kim/AI-Engineer/src/generator/experiment/test_dataset/prompt.jsonl",
-            retrieved_rfp_text = DUMMY_RFP_TEXT)
+            file_path = PROMPT_DATASET_PATH,
+            retrieved_rfp_text = DUMMY_RFP_TEXT,
+            normalize_dataset=True)
     """
     file은 아래와 같은 구조로 들어가면 된다.
 
