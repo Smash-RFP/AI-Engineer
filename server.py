@@ -16,4 +16,4 @@ async def ask(user_query: str = Body(...), previous_response_id: Optional[str] =
     return {"response_text": response_text, "previous_response_id": previous_response_id}
 
 if __name__ == "__main__":
-    uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("server:app", host="0.0.0.0", port=8000)

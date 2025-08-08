@@ -16,9 +16,9 @@ from src.retrieval.retrieval_run import retrieved_contexts
 
 
 
-username = "gcp-JeOn-8"
+username = "eojin-kim"
 
-base_dir = f"/home/{username}/AI-Engineer"
+base_dir = f"/home/{username}/ai_engineer"
 data_dir = os.path.join(base_dir, "data")
 output_docling_dir = os.path.join(data_dir, "output_docling")
 output_jsonl_dir = os.path.join(data_dir, "output_jsonl")
@@ -33,10 +33,9 @@ DEFAULT_SAVE_PATH = "data/meta_embedding_dict.pkl"
 COLLECTION_NAME = "rfp_documents"
 BATCH_SIZE = 32
 
-def openai_llm_response(user_query: str, previous_response_id=None, model: str = "gpt-4.1-nano", embedding_model="text-embedding-3-small"):
-    contexts = retrieved_contexts(user_query, model_name=embedding_model, provider="openai")
+def openai_llm_response(user_query: str, previous_response_id=None, model: str = "gpt-4.1-nano", embedding_model="text-embedding-3-small", retrieved_rfp_text=''):
     response_text, previous_response_id = generate_response(
-        user_query=user_query, retrieved_rfp_text=contexts, previous_response_id=previous_response_id, model=model
+        user_query=user_query, retrieved_rfp_text=retrieved_rfp_text, previous_response_id=previous_response_id, model=model
     )
     print('response_text: ', response_text)
     return response_text, previous_response_id
@@ -87,10 +86,10 @@ def pipeline(user_query: str, previous_response_id=None, model: str = "gpt-4.1-n
     
     
     contexts = retrieved_contexts(query=user_query, model_name=EMBEDDING_MODEL, provider="openai")
+    response_text, previous_response_id = openai_llm_response(user_query='고려대학교 추진사업에대해 자세히 알려줘', retrieved_rfp_text=contexts)
+    print('response_text: ', response_text)
+    print('previous_response_id: ', previous_response_id)
     
-    
-
-
     # EMBEDDING_MODEL = "nlpai-lab/KURE-v1"
     # parser = argparse.ArgumentParser(description="JSONL 파일로부터 문서를 임베딩하여 ChromaDB에 저장합니다.")
     # parser.add_argument("--data_dir", type=str, default=DEFAULT_DUMMY_DATA_DIR, help="입력 JSONL 파일이 있는 디렉터리 경로")
@@ -110,8 +109,6 @@ def pipeline(user_query: str, previous_response_id=None, model: str = "gpt-4.1-n
     # generate_meta_embeddings(data_dir=DEFAULT_DUMMY_DATA_DIR, save_path=DEFAULT_SAVE_PATH, model_name=EMBEDDING_MODEL, provider="huggingface")
     
     # contexts = retrieved_contexts(query=user_query, model_name=EMBEDDING_MODEL, provider="huggingface")
-    
-
 
 if __name__ == "__main__":
     pipeline('고려대학교 추진사업에대해 자세히 알려줘')
