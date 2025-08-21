@@ -1,0 +1,21 @@
+data/*
+/data/dummy/
+/data/dummy/**
+/src/retrieval/modules/__pycache__/
+/src/retrieval/data/
+/src/vectordb/chroma_db/
+
+# 기타 무시
+gitflow/
+__pycache__/
+*.pyc
+*.ipynb_checkpoints/
+.env
+*.onnx
+*.sqlite3
+*.ipynb
+*.csv
+*.json
+*.bin
+*.pickle
+*.pkl
