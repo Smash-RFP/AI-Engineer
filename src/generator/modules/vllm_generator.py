@@ -18,11 +18,11 @@ def build_prompt(query: str, context: str, chat_history: list) -> str:
     )
     return "".join([msg.content for msg in formatted])
 
-# <think> 제거용
+# <think> 제거
 def clean_qwen_response(s: str) -> str:
     return re.sub(r"<think>.*?</think>", "", s, flags=re.DOTALL).strip()
 
-# 리트리브 결과 안전 접근 (Document/dict 호환)
+# 리트리브 결과
 def _to_text(d):
     if hasattr(d, "page_content"):
         return (d.page_content or "").strip()
@@ -48,10 +48,10 @@ chat_history = []
 def run_rag_with_vllm(query: str) -> str:
     global chat_history
 
-    # 1) Retrieve
+    # Retrieve
     contexts = retrieved_contexts(query, model_name=EMBEDDING_MODEL, provider="huggingface")
 
-    # 2) 컨텍스트 병합 + citation 구성 (상위 5개만 사용)
+    # 컨텍스트 병합 + citation 구성 (상위 5개만 사용)
     snippets, citations = [], []
     for i, doc in enumerate(contexts[:5]):
         txt = _to_text(doc)
@@ -63,24 +63,24 @@ def run_rag_with_vllm(query: str) -> str:
 
     merged_context = "\n\n".join(snippets)
 
-    # 3) Prompt 생성
+    # Prompt 생성
     full_prompt = build_prompt(query, merged_context, chat_history)
 
-    # 4) 생성
+    # 생성
     outputs = llm.generate([full_prompt], sampling_params)
     response = outputs[0].outputs[0].text.strip()
 
-    # 5) 히스토리 업데이트
+    # 히스토리 업데이트
     chat_history.append(HumanMessage(content=query))
     chat_history.append(AIMessage(content=response))
 
-    # 6) 후처리 + citation 붙이기
+    # 후처리 + citation 붙이기
     answer = clean_qwen_response(response).rstrip()
     if citations:
         answer += "\n\n" + "\n".join(citations)
     return answer
 
-# 마크다운 제거(출력용)
+# 마크다운 제거
 def remove_markdown_formatting(text: str) -> str:
     text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)
     text = re.sub(r"^#+\s*", "", text, flags=re.MULTILINE)
